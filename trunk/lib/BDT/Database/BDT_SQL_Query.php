@@ -61,24 +61,10 @@ class BDT_SQL_Query  {
       } catch ( PDOException $error ) {
          trigger_error( $error->getMessage(), E_USER_WARNING );
       }
-      return $this;
-   }
-
-   public function bindParam( $parameter, $variable, $dataType ) {
-      $this->_statment->bindParam( $parameter, $variable, $dataType );
-   }
-
-   public function execute( $data = array() ) {
-      try {
-         $this->_statment->execute( $data );
-      } catch ( PDOException $error ) {
-         trigger_error( $error->getMessage(), E_USER_WARNING );
-      }
-      return $this;
+      return $this->_statment;
    }
 
    public function toArray() {
-      //var_dump($this->_statment);
       try {
          $result = $this->_statment->fetchAll();
       } catch ( PDOException $error ) {
@@ -87,38 +73,35 @@ class BDT_SQL_Query  {
       return $result;
    }
 
-   protected function inputs( $inputs = array() ) {
+   protected function inputs( $arguments = array() ) {
       $params = '';
-      $count = count( $inputs );
+      $count = count( $arguments );
       for( $i = 0; $i < $count; $i ++ ) {
-         $column = $this->_model->getTable()->getColumn( $inputs[ $i ] );
+         $column = $this->_model->getTable()->getColumn( $arguments[ $i ] );
 
-         $params .= ':' . $inputs[ $i ] . '::' . $column->getType();
+         $params .= ':' . $arguments[ $i ] . '::' . $column->getType();
+         $values[ $i ][ 'value' ] = $column->getValue();
+         $values[ $i ][ 'name' ] = $arguments[ $i ];
+
          if( $i < $count - 1 )
             $params .= ', ';
       }
 
-      return $params;
+      return array( $params, $values );
    }
 
-   public function procedure( $procedure ) {
-      try {
-         $function = $this->_model->getProcedure( $procedure );
-         $inputs = $this->inputs( $function->getArguments() );
+   public function callProcedure( $procedure ) {
+      $function = $this->_model->getProcedure( $procedure );
+      list( $inputs, $values ) = $this->inputs( $function->getArguments() );
 
-         $this->prepare( 'SELECT * FROM "' . $procedure . '" ( ' . $inputs . ' ); ' );
+      $this->prepare( 'SELECT * FROM "' . $procedure . '" ( ' . $inputs . ' ); ' );
 
-         $this->_statment->bindParam( ':userLogin', $master, PDO::PARAM_STR );
-         $this->_statment->bindParam( ':userPasswd', $pwd, PDO::PARAM_STR );
-         $this->_statment->execute();
-         //var_dump($this->_statment);
-         return $this->_statment->fetch(PDO::FETCH_OBJ);
-         /*foreach( $this->_model->getData() as $column ) {
-            $this->bindParam( ':' );
-         }*/
-         //var_dump($this->_statment);
-      } catch ( PDOException $error ) {
-         trigger_error( $error->getMessage(), E_USER_WARNING );
+      foreach( $values as $value ) {
+         $this->_statment->bindParam( ':' . $value[ 'name' ], $value[ 'value' ], $value[ 'cast' ] );
       }
+
+      $this->_statment->execute();
+
+      return $this->_statment->fetch(PDO::FETCH_OBJ);
    }
 }

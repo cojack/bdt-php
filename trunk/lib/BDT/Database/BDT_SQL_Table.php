@@ -53,6 +53,12 @@ class BDT_SQL_Table {
       $this->_tableName = $tableName;
    }
 
+   public function initVariable( BDT_Request $request ) {
+      foreach( $this->_columns as $column ) {
+         $column->setValue( $request->getParameterValue( $column->getName() ) );
+      }
+   }
+
    public function addColumn( $column, $definition = array() ) {
       $this->_columns->addItem( new BDT_SQL_Column( $column, $definition), $column );
    }
