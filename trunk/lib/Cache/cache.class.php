@@ -150,11 +150,11 @@ class Cache
 	public function clearAllCache($driver = NULL)
 	{
 		try{
-			if(empty($name) || !array_key_exists($name, $this->drivers)) {
+			if(empty($driver) || !array_key_exists($driver, $this->drivers)) {
 				foreach($this->drivers as $drv) $drv->clearAllCache();
 				return true;
 			}
-			return $this->drivers[$name]->clearAllCache();
+			return $this->drivers[$driver]->clearAllCache();
 		}
 		catch (CacheException $e){
 			if($this->debugMode) throw $e;
@@ -172,11 +172,11 @@ class Cache
 	public function clearGroupCache($groupName, $driver = NULL)
 	{
 		try{
-			if(empty($name) || !array_key_exists($name, $this->drivers)) {
+			if(empty($driver) || !array_key_exists($driver, $this->drivers)) {
 				foreach($this->drivers as $drv) $drv->clearGroupCache($groupName);
 				return true;
 			}
-			return $this->drivers[$name]->clearGroupCache($groupName);
+			return $this->drivers[$driver]->clearGroupCache($groupName);
 		}
 		catch (CacheException $e){
 			if($this->debugMode) throw $e;
@@ -195,11 +195,11 @@ class Cache
 	public function clearCache($groupName, $identifier, $driver = NULL)
 	{
 		try{
-			if(empty($name) || !array_key_exists($name, $this->drivers)) {
+			if(empty($driver) || !array_key_exists($driver, $this->drivers)) {
 				foreach($this->drivers as $drv) $drv->clearGroupCache($groupName);
 				return true;
 			}
-			return $this->drivers[$name]->clearGroupCache($groupName);
+			return $this->drivers[$driver]->clearGroupCache($groupName);
 		}
 		catch (CacheException $e){
 			if($this->debugMode) throw $e;
