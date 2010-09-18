@@ -164,19 +164,34 @@ class BDT_Request {
     */
    private $_blHasRunConstraintTests;
 
-
-  public function __construct($check_for_cookie = true) {
-    // Import variables
+   /**
+   * Tworzy egzemplarz obiektu request.
+   * Nie wymaga podawania żadnych parametrów, ale sprawdza wartości
+   * - $_REQUEST,
+   * - $_POST,
+   * - $_GET
+   * - $_COOKIE
+   * i na ich podstawie inicjalizuje zmienne składowe. Dodatkowo sprawdza, czy istnieje cookie o nazwie phprqcOriginalRequestObject.
+   * Jeżeli istnieje, przyjmuje się, że po odrzuceniu w efekcie negatywnych wyników testów prawidłowości, powinien zostać zwrócony odrębny obiekt request.
+   * To cookie jest następnie zerowane, aby niestworzyć nieskończonej pętli w momencieu tworzenia obiektu reprezentującego pierwotne żądanie.
+   * Jego zawartość jest następnie odszeregowywana (funkcją stripshlashes() ) do nowego obiektu żądania,
+   * którego zawartość jest potem udostępniana do odczytu poprzez funkcję dostępowa getOriginalRequestObjectFol1owingConstraintFai1ure.
+   *
+   * @param     boolean     $check_for_cookie   default true
+   * @return    void
+   */
+   public function __construct($check_for_cookie = true) {
+    /*/ Import variables
     global $_REQUEST;
     global $_GET;
     global $_POST;
-    global $_COOKIE;
+    global $_COOKIE;*/
     $this->_arGetVars = $_GET;
     $this->_arPostVars = $_POST;
     $this->_arCookieVars = $_COOKIE;
     $this->_arRequestVars = $_REQUEST;
     if ($check_for_cookie) {
-      if ($this->_arCookieVars["phprqcOriginalRequestObject"]) {
+      if ( isset( $this->_arCookieVars["phprqcOriginalRequestObject"] ) ) {
         $cookieVal = $this->_arRequestVars["phprqcOriginalRequestObject"];
         $this->_blIsRedirectFollowingConstraintFailure = true;
         if (strlen($cookieVal) > 0) {
@@ -222,7 +237,10 @@ class BDT_Request {
   }
 
   public function getParameterValue($strParameter) {
-    return($this->_arRequestVars[$strParameter]);
+    if( isset( $this->_arRequestVars[$strParameter] ) )
+      return($this->_arRequestVars[$strParameter]);
+
+   return NULL;
   }
 
   public function getParameters() {

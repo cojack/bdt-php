@@ -30,15 +30,54 @@
  **/
 class BDT_Constraint {
 
+   /**
+    * Minimalny rozmiar
+    */
    const CT_MINLENGTH = 1;
+
+   /**
+    * Maksymalny rozmiar
+    */
    const CT_MAXLENGTH = 2;
+
+   /**
+    * Dozwolone znaki
+    */
    const CT_PERMITTEDCHARACTERS = 3;
+
+   /**
+    * Niedozwolone znaki
+    */
    const CT_NONPERMITTEDCHARACTERS = 4;
+
+   /**
+    *  Mniejsze niż
+    */
    const CT_LESSTHAN = 5;
+
+   /**
+    * Większe niż
+    */
    const CT_MORETHAN = 6;
+
+   /**
+    * Równe z
+    */
    const CT_EQUALTO = 7;
+
+   /**
+    * Różne od
+    */
    const CT_NOTEQUALTO = 8;
+
+   /**
+    * Wyrażenie musi zostać spełnione
+    */
    const CT_MUSTMATCHREGEXP = 9;
+
+   /**
+    * Wyrażenie nie może zostać spełnione
+    */
    const CT_MUSTNOTMATCHREGEXP = 10;
 
   private $_intConstraintType;
