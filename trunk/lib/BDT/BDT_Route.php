@@ -42,6 +42,8 @@ class BDT_Route {
     */
    private $_url;
 
+   private $_request;
+
    private $_mapper;
 
    public function __construct() {
@@ -50,8 +52,11 @@ class BDT_Route {
          './lib/Horde/Exception',
          './lib/Horde/Route',
          './lib/Horde/Utils',
-         'xml' => './config/routing'
+         'xml' => './config/routing',
+         './lib/BDT/Request/BDT_Request'
       ) );
+
+      $this->_request = new BDT_Request;
 
       $this->_mapper = new Horde_Routes_Mapper;
    }
@@ -74,22 +79,28 @@ class BDT_Route {
          $this->_mapper->connect( (string)$routeXml[0]->define[$i]->name, (string)$routeXml[0]->define[$i]->url, (array)$routeXml[0]->define[$i]->parametrs );
       }
 
-      $this->_mapper->createRegs( $routeXml[0]->controllers['controller'] );
+      $controllers = (array)$routeXml[0]->controllers;
+
+      $this->_mapper->createRegs( $controllers['controller'] );
 
       $this->_route = $this->_mapper->match( $this->_url );
    }
 
    private function _checkUrl() {
-      if( isset( $_GET['q'] ) )
-         $this->_url = '/' . mb_strtolower( $_GET['q'], 'UTF-8' );
-      else
-         $this->_url = '/';
+      $url = $this->_request->getParameterValue( 'q' );
 
-      $_GET = array();
+      $this->_url = '/';
+
+      if( isset( $url ) )
+         $this->_url .= mb_strtolower( $url, 'UTF-8' );
 
       $this->_url = strip_tags( $this->_url );
 
       return $this;
+   }
+
+   public function getRequest() {
+      return $this->_request;
    }
 
    public function __get( $name ) {
