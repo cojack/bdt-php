@@ -36,11 +36,13 @@ BDT_Loader::loadFile( array(
 
 abstract class BDT_SQL_Model {
 
-   protected $_query;
+   private $_query;
 
    private $_functions;
 
    private $_table;
+
+   private $_validator;
 
    private $_validators = array (
       'smallint' => 'is_int',
@@ -70,17 +72,33 @@ abstract class BDT_SQL_Model {
       $this->_table->setTableName( $name );
    }
 
-   protected function _addColumn( $column, $definition ) {
-      $this->_table->addColumn( $column, $definition );
+   protected function _addColumn( $column, $type, $isArray ) {
+      $this->_table->addColumn( $column, $type, $isArray );
    }
 
    protected function _addProcedure( $name, $arguments, $return = 'VOID' ) {
       $this->_functions->addItem( new BDT_SQL_Function( $name, $arguments, $return ), $name );
    }
 
+   protected function _addValidator( $column, $validator, $options ) {
+      $this->_validator->setConstraint( $column, $validator, $options );
+   }
+
+   public function isValid( $request ) {
+      $this->_validator = new BDT_SQL_Validator( $this, $request );
+   }
+
+   public function execProcedure( $procedure, BDT_Request $request ) {
+      $this->_table->initVariable( $request );
+      $this->_query->callProcedure( $procedure );
+   }
 
    public function getProcedure( $procedureName ) {
       return $this->_functions->getItem( $procedureName );
+   }
+
+   public function setQuery( $sql ) {
+      return $this->_query->prepare( $sql );
    }
 
    public function getTable() {

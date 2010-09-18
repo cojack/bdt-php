@@ -33,23 +33,30 @@ class BDT_SQL_Column {
 
    private $_type;
 
-   private $_notNull = FALSE;
+   private $_isArray = FALSE;
 
-   private $_maxLength = NULL;
+   private $_value = NULL;
 
-   private $_definitions = array();
-
-   public function __construct( $name, $definition = array() ) {
+   public function __construct( $name, $type, $isArray = FALSE ) {
       $this->_name = $name;
-      $this->_definition = $definition;
+      $this->_type = $type;
+      $this->_isArray = $isArray;
+   }
 
-      $this->_type = isset( $definition[ 'type' ] ) ? $definition[ 'type' ] : NULL;
-      $this->_notNull = isset( $definition[ 'notNull' ] ) ? $definition[ 'notNull' ] : NULL;
-      $this->_maxLength = isset( $definition[ 'maxLength' ] ) ? $definition[ 'maxLength' ] : NULL;
+   public function getName() {
+      return $this->_name;
    }
 
    public function getType() {
       return $this->_type;
+   }
+
+   public function setValue( $value ) {
+      $this->_value = $value;
+   }
+
+   public function getValue() {
+      return $this->_value;
    }
 
 }
