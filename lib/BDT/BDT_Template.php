@@ -78,6 +78,12 @@ class BDT_Template {
       $this->_debug = $debug;
       $this->_route = $route;
 
+      BDT_Loader::loadFile( array(
+         './lib/BDT/Collection/Components/BDT_View_Collection',
+         './lib/BDT/Template/BDT_View',
+         'ini' => './config/paths'
+      ) );
+
       $this->_views = new BDT_View_Collection;
 
       $this->_paths = (object)BDT_Loader::getFiles( array(
@@ -86,7 +92,6 @@ class BDT_Template {
             'delete' => FALSE
          )
       ) );
-      var_dump($this->_paths->cacheDir);
    }
 
    /**
