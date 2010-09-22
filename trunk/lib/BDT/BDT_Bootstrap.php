@@ -23,13 +23,12 @@
  *
  * @author     Przemysław Czekaj <przemyslaw.czekaj@aichra.pl>
  * @link       http://aichra.pl
- * @version    0.1
- * @since      03.23.2010
+ * @version    0.2
+ * @since      22.09.2010
  * @package    BDT
  * @charset    utf8
  **/
 
-require_once( './../lib/BDT/BDT_Debugger.php' );
 require_Once( './../lib/BDT/BDT_Loader.php' );
 
 abstract class BDT_Bootstrap {
@@ -43,14 +42,6 @@ abstract class BDT_Bootstrap {
    private $_debug;
 
    /**
-    * Obiekt klasy BDT_PGFM
-    *
-    * @access  private
-    * @var     object   BDT_PGFM
-    */
-   private $_sql;
-
-   /**
     * Obiekt klasy BDT_Template
     *
     * @access  private
@@ -58,13 +49,40 @@ abstract class BDT_Bootstrap {
     */
    private $_tpl;
 
+   /**
+    * Obiekt klasy BDT_Template
+    *
+    * @access  private
+    * @var     object   BDT_Route
+    */
    private $_route;
 
+   /**
+    * Obiekt klasy BDT_Template
+    *
+    * @access  private
+    * @var     object   BDT_Dispatcher
+    */
    private $_dispatcher;
 
+   /**
+    * Zmienna środowiskowa
+    *
+    * @access   protected
+    * @var      boolean
+    */
    protected $_environment;
 
+   /**
+    * Konstruktor klasy
+    * Wywołuje w kolejności wszystkie metody w sobie, tymsamym wywołuje mechanizm łancuchowy całej aplikacji
+    *
+    * @param    void
+    * @access   public
+    * @return   void
+    */
    public function __construct() {
+      BDT_Loader::initialize();
       $this->_initDebug()->_initRouter()->_initTemplate()->_initDispatcher();
    }
 
@@ -86,6 +104,13 @@ abstract class BDT_Bootstrap {
       return $this;
    }
 
+   /**
+    * Inicjalizacja routera w tym też request
+    *
+    * @param   void
+    * @access  private
+    * @return  this
+    */
    private function _initRouter() {
       BDT_Loader::loadFile( array( './lib/BDT/BDT_Route' ) );
 
@@ -96,6 +121,13 @@ abstract class BDT_Bootstrap {
       return $this;
    }
 
+   /**
+    * Inicjalizacja obsługi akcji
+    *
+    * @param   void
+    * @access  private
+    * @return  void
+    */
    private function _initDispatcher() {
       BDT_Loader::loadFile( array( './lib/BDT/BDT_Dispatcher' ) );
 
@@ -112,9 +144,9 @@ abstract class BDT_Bootstrap {
     * @return  this
     */
    private function _initDebug() {
-      $this->_debug = BDT_Debugger::initialize( $this->_environment );
+      BDT_Loader::loadFile( array( './lib/BDT/BDT_Debugger' ) );
 
-      BDT_Loader::initialize();
+      $this->_debug = BDT_Debugger::initialize( $this->_environment );
 
       return $this;
    }
@@ -127,7 +159,7 @@ abstract class BDT_Bootstrap {
    public function __destruct() {
       $this->_tpl->getHTML();
 
-      unset( $this->_dispatcher, $this->_tpl ,$this->_sql, $this->_route, $this->_debug );
+      unset( $this->_dispatcher, $this->_tpl , $this->_route, $this->_debug );
       exit(0);
    }
 
