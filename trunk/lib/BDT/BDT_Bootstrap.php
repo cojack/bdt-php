@@ -157,8 +157,6 @@ abstract class BDT_Bootstrap {
     * @return  void
     */
    public function __destruct() {
-      $this->_tpl->getHTML();
-
       unset( $this->_dispatcher, $this->_tpl , $this->_route, $this->_debug );
       exit(0);
    }

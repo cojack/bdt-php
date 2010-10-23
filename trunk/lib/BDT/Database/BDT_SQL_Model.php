@@ -18,6 +18,11 @@
  *
  **/
 
+BDT_Loader::loadFile( array(
+   './lib/BDT/Collection/Components/BDT_SQL_Procedure_Collection',
+   './lib/BDT/Database/Components/BDT_SQL_Procedure'
+) );
+
 /**
  * BDT_SQL_Model klasa implementuje model w bazie danych
  *
@@ -28,64 +33,63 @@
  * @package    BDT
  * @charset    utf8
  **/
-
-BDT_Loader::loadFile( array(
-   './lib/BDT/Collection/Components/BDT_SQL_Function_Collection',
-   './lib/BDT/Database/Components/BDT_SQL_Function'
-) );
-
 abstract class BDT_SQL_Model {
 
    private $_query;
 
-   private $_functions;
+   private $_procedures;
 
    private $_table;
 
    private $_validator;
 
-   private $_validators = array (
-      'smallint' => 'is_int',
-      'integer' => 'is_int',
-      'bigint' => 'is_int',
-      'decimal' => 'is_float',
-      'numeric' => 'is_numeric',
-      'real' => 'is_float',
-      'float' => 'is_float',
-      'varchar' => 'is_string',
-      'text' => 'is_string',
-      'boolean' => 'is_bool'
-   );
-
    public function __construct() {
-
       $this->_query = new BDT_SQL_Query( $this );
 
       $this->_table = new BDT_SQL_Table( $this );
 
-      $this->_functions = new BDT_SQL_Function_Collection;
-      $this->_functions->setLoadCallback( 'setProcedures', $this );
-
+      $this->_procedures = new BDT_SQL_Procedure_Collection;
+      $this->_procedures->setLoadCallback( 'setProcedures', $this );
    }
 
    protected function _setTableName( $name ) {
       $this->_table->setTableName( $name );
    }
 
-   protected function _addColumn( $column, $type, $isArray ) {
+   protected function _addColumn( $column, $type, $isArray = FALSE ) {
       $this->_table->addColumn( $column, $type, $isArray );
    }
 
    protected function _addProcedure( $name, $arguments, $return = 'VOID' ) {
-      $this->_functions->addItem( new BDT_SQL_Function( $name, $arguments, $return ), $name );
+      $this->_procedures->addItem( new BDT_SQL_Procedure( $name, $arguments, $return ), $name );
    }
 
-   protected function _addValidator( $column, $validator, $options ) {
-      $this->_validator->setConstraint( $column, $validator, $options );
+   protected function _addValidator( $column, $validator, $options, $error ) {
+      $this->_validator->setConstraint( $column, $validator, $options, $error );
    }
 
    public function isValid( $request ) {
+      BDT_Loader::loadFile( array(
+         './lib/BDT/Database/Components/BDT_SQL_Validator',
+      ) );
+
       $this->_validator = new BDT_SQL_Validator( $this, $request );
+      $this->setValidators();
+
+      return $request->validConstraints();
+   }
+
+   public function setConstraintFailure( $request ) {
+      $failingRequest = $request->getOriginalRequestObjectFollowingConstraintFailure();
+      $constraintFailures = $failingRequest->getConstraintFailures();
+      $n = count( $constraintFailures );
+      for( $i = 0; $i < $n; $i++ ) {
+         $constraintFailure = &$constraintFailures[$i];
+         $failingConstraint = $constraintFailure->getFailedConstraintObject();
+         $column = $this->_table->getColumn( $constraintFailure->getParameterName() );
+         $column->setError( $failingConstraint->getConstraintMessage() );
+      }
+
    }
 
    public function execProcedure( $procedure, BDT_Request $request ) {
@@ -94,7 +98,7 @@ abstract class BDT_SQL_Model {
    }
 
    public function getProcedure( $procedureName ) {
-      return $this->_functions->getItem( $procedureName );
+      return $this->_procedures->getItem( $procedureName );
    }
 
    public function setQuery( $sql ) {

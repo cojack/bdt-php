@@ -28,4 +28,4 @@
  * @package    BDT
  * @charset    utf8
  **/
-class BDT_Exception_Factory extends Exception {}
+class BDT_Exception_Factory {}

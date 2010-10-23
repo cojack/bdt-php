@@ -74,7 +74,7 @@ final class BDT_Debugger {
    private function __construct() {
       if( self::$debug ) {
          ini_set('display_errors', 1 );
-         set_error_handler( array( $this, '_errorHandler' ), E_ALL );
+         set_error_handler( array( $this, 'errorHandler' ), E_ALL );
       } else {
          ini_set('display_errors', 0 );
       }
@@ -119,7 +119,7 @@ final class BDT_Debugger {
     * @param unknown_type $errline
     * @return unknown_type
     */
-   public function _errorHandler( $errLvl, $errMsg, $errFile, $errLine ) {
+   public function errorHandler( $errLvl, $errMsg, $errFile, $errLine ) {
       switch ( $errLvl ) {
          case E_USER_ERROR:
            echo "<b>My ERROR</b> [$errLvl] $errMsg<br />\n";

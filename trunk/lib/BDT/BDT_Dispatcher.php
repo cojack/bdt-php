@@ -66,6 +66,8 @@ class BDT_Dispatcher {
       try {
          BDT_Loader::loadFile( array(
             './lib/BDT/Event/BDT_Event_Handler',
+            './lib/BDT/Event/BDT_Front_Event_Handler',
+            './lib/BDT/Event/BDT_Back_Event_Handler',
             './app/' . $this->_route->interface . '/modules/' . $this->_route->controller . '/actions/' . $this->_route->controller
          ) );
 
@@ -74,12 +76,12 @@ class BDT_Dispatcher {
          if( class_exists( $name ) ) {
             $handObj = new $name;
             $handObj->setDebug( $this->_debug )->setTpl( $this->_tpl )->setRoute( $this->_route );
-            $this->_response = $handObj->handledEvent();
-         } else {
-            throw new Exception ( 'Can\'t be handled this Event' );
+            $handObj->handledEvent();
+         } else { echo _( 'Nie ma takiego kontrolera' ) ;
+            throw new Exception ( _( 'Nie ma takiego kontrolera' ) );
          }
       } catch ( Exception $error ) {
-         trigger_error( $error->getMessage() , E_USER_WARNING );
+         trigger_error( $error, E_USER_WARNING );
       }
    }
 }

@@ -33,6 +33,8 @@ class BDT_SQL_Column {
 
    private $_type;
 
+   private $_error = NULL;
+
    private $_isArray = FALSE;
 
    private $_value = NULL;
@@ -49,6 +51,14 @@ class BDT_SQL_Column {
 
    public function getType() {
       return $this->_type;
+   }
+
+   public function getError() {
+      return $this->_error;
+   }
+
+   public function setError( $errorMessage ) {
+      $this->_error = $errorMessage;
    }
 
    public function setValue( $value ) {

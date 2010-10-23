@@ -40,7 +40,7 @@ final class BDT_Database {
 
    private $_table;
 
-   private static $_config = array( 'ini' => './config/database' );
+   private static $_config = array( './config/database' => 'ini'  );
 
    private function __construct() {
       BDT_Loader::loadFile( array (
@@ -48,13 +48,14 @@ final class BDT_Database {
          './lib/BDT/Database/BDT_SQL_Query',
          './lib/BDT/Database/BDT_SQL_Table',
          './lib/BDT/Database/BDT_SQL_Model',
+         './lib/BDT/Exception/BDT_Database_Exception'
          )
       );
 
       $this->_conn = BDT_SQL_Connect::getInstance( self::$_config );
    }
 
-   public function select( $model ) {
+   public function getModel( $model ) {
 
       $this->_model = ucfirst( $model );
       BDT_Loader::loadFile( array(
@@ -63,20 +64,16 @@ final class BDT_Database {
          )
       );
 
-      try {
-         $PGFM_model = 'SQL_' . $this->_model;
+      $PGFM_model = 'SQL_' . $this->_model;
 
-         if( !class_exists( $PGFM_model ) )
-            throw new Exception( 'Nie ma takiej klasy' );
+      if( !class_exists( $PGFM_model ) )
+         throw new BDT_Database_Exception( 'Nie ma takiej klasy' );
 
-         $objModel = new $PGFM_model;
+      $objModel = new $PGFM_model;
 
-         self::menageBackends( $this->_model, $objModel );
+      self::menageBackends( $this->_model, $objModel );
 
-         return self::menageBackends( $this->_model );
-      } catch ( Exception $error ) {
-         trigger_error( $error->getMessage(), E_USER_WARNING );
-      }
+      return self::menageBackends( $this->_model );
    }
 
    public static function initialize() {
@@ -98,7 +95,7 @@ final class BDT_Database {
          if( isset( $backEnds[ $name ] ) )
             return $backEnds[ $name ];
          else
-            throw new Exception( 'Błędny klucz' );
+            throw new BDT_Database_Exception( 'Błędny klucz' );
       } else {
          $backEnds[ $name ] = $objBack;
       }

@@ -19,29 +19,24 @@
  **/
 
 /**
- * BDT_SQL_Validator klasa implementuje walidacje zmiennych
+ * BDT_Helper_Css klasa odpowiedzialna za przechowywanie ścieżki do pliku css
  *
  * @author     Przemysław Czekaj <przemyslaw.czekaj@aichra.pl>
  * @link       http://aichra.pl
  * @version    0.1
- * @since      03.23.2010
+ * @since      02.10.2010
  * @package    BDT
  * @charset    utf8
  **/
-class BDT_SQL_Validator {
+class BDT_Helper_Css implements BDT_Helper {
 
-   private $_model;
+   private $_path = NULL;
 
-   private $_request;
-
-   public function __construct( $model, $request ) {
-      $this->_model = $model;
-      $this->_request = $request;
+   public function setPath( $path ) {
+      $this->_path = $path;
    }
 
-   public function setConstraint( $column, $validator, $options, $errorMessage ) {
-      $objConstraint = new BDT_Constraint( $validator, $options, $errorMessage );
-      $this->_request->addConstraint( $column, BDT_Request::VERB_METHOD_POST, $objConstraint );
+   public function getPath() {
+      return '/css/' . $this->_path . '.css';
    }
-
 }

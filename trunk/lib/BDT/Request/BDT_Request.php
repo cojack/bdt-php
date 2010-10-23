@@ -353,7 +353,7 @@ class BDT_Request {
     };
     if ($anyFail) {
       if ($this->_blRedirectOnConstraintFailure) {
-          $targetURL = $_ENV["HTTP_REFERER"];
+          $targetURL = $_SERVER["HTTP_REFERER"];
           if (!$targetURL) {
             $targetURL = $this->_strConstraintFailureDefaultRedirectTargetURL;
           };

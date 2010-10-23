@@ -19,87 +19,23 @@
  **/
 
 /**
- * BDT_Event_Handler klasa odpowiedzialna za obsługę akcji
+ * BDT_Event_Handler interfejs wymuszający implementację metod
  *
  * @author     Przemysław Czekaj <przemyslaw.czekaj@aichra.pl>
  * @link       http://aichra.pl
  * @version    0.1
- * @since      03.23.2010
+ * @since      05.10.2010
  * @package    BDT
  * @charset    utf8
  **/
-abstract class BDT_Event_Handler {
+interface BDT_Event_Handler {
 
-   protected $_route;
+   public function setDebug( BDT_Debugger $debug );
 
-   protected $_view;
+   public function setTpl( BDT_Template $tpl );
 
-   protected $_debug;
+   public function setRoute( BDT_Route $route );
 
-   protected $_space = 'content';
+   public function handledEvent();
 
-   private $_tpl;
-
-   private $_viewCheckSum;
-
-   public function setDebug( BDT_Debugger $debug ) {
-      $this->_debug = $debug;
-      return $this;
-   }
-
-   public function setTpl( BDT_Template $tpl ) {
-      $this->_tpl = $tpl;
-      return $this;
-   }
-
-   public function setRoute( BDT_Route $route ) {
-      $this->_route = $route;
-      return $this;
-   }
-
-   public function handledEvent() {
-
-      $action = $this->_route->action . 'Event';
-
-      if ( method_exists( $this, $action ) ) {
-         if ( is_callable( array($this, $action), true ) )
-         {
-            try {
-               $this->_setView();
-               if( !$this->_checkCacheView() ) {
-                  $this->{ $action }();
-                  $this->_renderView();
-               }
-               $this->_appendView();
-            } catch ( Exception $error ) {
-               trigger_error( $error->getMessage() , E_USER_WARNING );
-            }
-         }
-         else
-            throw new Exception ('Nie można wywołać akcji' . $action );
-
-      } else
-         throw new Exception ('Brak obsługi akcji' . $action );
-
-   }
-
-   private function _setView() {
-      $this->_view = $this->_tpl->getView();
-
-      $this->_view->setModule( $this->_route->controller );
-
-      $this->_viewCheckSum = sha1( $this->_route->controller . '/' . $this->_route->action );
-   }
-
-   private function _checkCacheView() {
-      return $this->_tpl->isCachedView( $this->_space, $this->_viewCheckSum, $this->_view );
-   }
-
-   private function _renderView() {
-      $this->_tpl->renderView( $this->_space, $this->_viewCheckSum, $this->_view );
-   }
-
-   private function _appendView() {
-      $this->_tpl->appendView( $this->_view );
-   }
 }

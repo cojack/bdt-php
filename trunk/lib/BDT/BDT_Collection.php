@@ -18,22 +18,21 @@
  *
  **/
 
+BDT_Loader::loadFile( array(
+   './lib/BDT/Collection/BDT_Collection_Iterator',
+   './lib/BDT/Exception/BDT_Collection_Exception'
+) );
+
 /**
  * BDT_Collection klasa kolekcji (implementacja mapy)
  *
  * @author     Przemysław Czekaj <przemyslaw.czekaj@aichra.pl>
  * @link       http://aichra.pl
  * @version    0.1
- * @since      03.23.2010
+ * @since      11.09.2010
  * @package    BDT
  * @charset    utf8
  **/
-
-BDT_Loader::loadFile( array(
-   './lib/BDT/Collection/BDT_Collection_Iterator',
-   './lib/BDT/Exception/BDT_Collection_Exception'
-) );
-
 class BDT_Collection implements IteratorAggregate {
 
    /**
@@ -74,7 +73,7 @@ class BDT_Collection implements IteratorAggregate {
 
       if( $key ) {
          if( isset( $this->_members[ $key ] ) )
-            throw new BDT_Collection_Exception( 'Klucz ' . htmlspecialchars( $key, ENT_QUOTES, 'UTF-8' ) . ' jest już zajęty' );
+            throw new BDT_Collection_Exception( sprintf( dgettext( 'errors', 'Klucz %s jest już zajęty' ), htmlspecialchars( $key, ENT_QUOTES, 'UTF-8' ) ) );
          else
             $this->_members[ $key ] = $obj;
       } else
@@ -95,7 +94,7 @@ class BDT_Collection implements IteratorAggregate {
       if( isset( $this->_members[ $key ] ) )
          unset( $this->_members[ $key ] );
       else
-         throw new BDT_Collection_Exception( 'Błędny klucz ' . htmlspecialchars( $key, ENT_QUOTES, 'UTF-8' ) );
+         throw new BDT_Collection_Exception( sprintf( dgettext( 'errors', 'Błędny klucz %s' ), htmlspecialchars( $key, ENT_QUOTES, 'UTF-8' ) ) );
    }
 
    /**
@@ -112,7 +111,7 @@ class BDT_Collection implements IteratorAggregate {
       if( isset( $this->_members[ $key ] ) )
          return $this->_members[ $key ];
       else
-         throw new BDT_Collection_Exception( 'Błędny klucz ' . htmlspecialchars( $key, ENT_QUOTES, 'UTF-8' ) );
+         throw new BDT_Collection_Exception( sprintf( dgettext( 'errors', 'Błędny klucz %s' ), htmlspecialchars( $key, ENT_QUOTES, 'UTF-8' ) ) );
    }
 
    /**
@@ -171,7 +170,7 @@ class BDT_Collection implements IteratorAggregate {
          $callback = $functionName;
 
       if( !is_callable( $callback, false, $callableName ) ) {
-         throw new BDT_Collection_Exception( 'Funkcja zwrotna ' . htmlspecialchars( $callableName, ENT_QUOTES, 'UTF-8' ) . ' nieprawidłowa!' );
+         throw new BDT_Collection_Exception( sprintf( dgettext( 'errors', 'Funkcja zwrotna %s nieprawidłowa!' ), htmlspecialchars( $callableName, ENT_QUOTES, 'UTF-8' ) ) );
          return FALSE;
       }
       $this->_onload = $callback;

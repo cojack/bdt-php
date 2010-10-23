@@ -28,10 +28,6 @@
  * @package    BDT
  * @charset    utf8
  **/
-
-/**
- * @TODO    Błędy w postaci GETTEXT
- */
 class BDT_Loader {
 
    private static $_path;
@@ -54,18 +50,22 @@ class BDT_Loader {
     * Zachowywujemy się tak jakbyśmy byli w / tego cms'a.
     *
     * @access  public
-    * @param   array    $files   Tablica w postaci array ( 'typ' => 'plik', 'typ' => 'plik', 'typ' => 'plik' );
+    * @param   array    $files   Tablica w postaci array ( 'plik' => 'typ', 'plik' => 'typ', 'plik' => 'typ' ... );
     * @return  void
     */
    public static function loadFile( $files = array() ) {
-      foreach( $files as $fileType => $file ) {
-         $method = '_loadFile' . ( is_int( $fileType ) ? 'PHP' : mb_strtoupper( $fileType, 'UTF-8' ) );
+      foreach( $files as $file => $fileType ) {
+         $method = '_loadFile' . ( is_int( $file ) ? 'PHP' : mb_strtoupper( $fileType, 'UTF-8' ) );
+         if( is_int($file) ) {
+            $file = $fileType;
+         }
          self::$method( $file );
       }
    }
 
    private static function _loadFilePHP( $file ) {
-      require_once( self::$_path . DIRECTORY_SEPARATOR . $file . '.php' );
+      if( self::_checkFile( $file . '.php' ) )
+         require_once( self::$_path . DIRECTORY_SEPARATOR . $file . '.php' );
    }
 
    /**
@@ -95,13 +95,11 @@ class BDT_Loader {
 
    private static function _loadFileINI( $file ) {
       $ini = parse_ini_file( self::$_path . DIRECTORY_SEPARATOR . $file . '.ini', true);
-
       if( $ini === FALSE ) {
          trigger_error( 'Zła ścieżka i/lub nazwa dla pliku: '. $file . "\n" . 'Ścieżka: ' . self::$_path . $file . '.ini', E_USER_WARNING );
       } else {
          self::$_files->addItem( $ini, basename( $file ) . '.ini' );
       }
-
       $ini = NULL;
    }
 
@@ -111,14 +109,15 @@ class BDT_Loader {
 
       $n = count( $files );
 
-      $tabFiles = array();
+      $tabFiles = NULL;
 
       try {
          if( $n <= 1 ) {
-               $tabFiles = self::getFile( $files[ 0 ][ 'name' ], (boolean)$files[ 0 ][ 'name' ] );
+               $tabFiles = self::getFile( $files[ 0 ][ 'name' ], (boolean)$files[ 0 ][ 'delete' ] );
          } else {
+            $tabFiles = array();
             foreach( $files as $file )
-               $tabFiles[] = self::getFile( $file['name'], (boolean)$file['name'] );
+               $tabFiles[] = self::getFile( $file['name'], (boolean)$file['delete'] );
          }
       } catch( BDT_Collection_Exception $error ) {
          trigger_error( $error->getMessage() , E_USER_WARNING  );
@@ -145,14 +144,14 @@ class BDT_Loader {
     * @return  boolean  true, false
     */
    private static function _checkFile( $file ) {
-      if( is_file( self::$_path.$file ) ) {
-         if( is_readable( self::$_path.$file ) ) {
+      if( is_file( self::$_path . DIRECTORY_SEPARATOR . $file ) ) {
+         if( is_readable( self::$_path . DIRECTORY_SEPARATOR . $file ) ) {
             return TRUE;
          } else {
             trigger_error( 'Plik: '. $file . ' jest nie dla odczytu, sprawdź uprawnienia.' , E_USER_WARNING );
          }
       } else {
-         trigger_error( 'Zła ścieżka i/lub nazwa dla pliku: '. $file . "\n" . 'Ścieżka: ' . self::$_path . $file , E_USER_WARNING );
+         trigger_error( 'Zła ścieżka i/lub nazwa dla pliku: '. $file . "\n" . 'Ścieżka: ' . self::$_path  . DIRECTORY_SEPARATOR .  $file , E_USER_WARNING );
       }
       return FALSE;
    }

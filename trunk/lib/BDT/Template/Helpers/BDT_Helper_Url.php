@@ -19,29 +19,30 @@
  **/
 
 /**
- * BDT_SQL_Validator klasa implementuje walidacje zmiennych
+ * BDT_Helper_Url klasa odpowiedzialna za generowanie adresów url na podstawie routera
  *
  * @author     Przemysław Czekaj <przemyslaw.czekaj@aichra.pl>
  * @link       http://aichra.pl
  * @version    0.1
- * @since      03.23.2010
+ * @since      02.10.2010
  * @package    BDT
  * @charset    utf8
  **/
-class BDT_SQL_Validator {
+class BDT_Helper_Url implements BDT_Helper {
 
-   private $_model;
+   private $_utils = NULL;
 
-   private $_request;
+   private $_arguments = array();
 
-   public function __construct( $model, $request ) {
-      $this->_model = $model;
-      $this->_request = $request;
+   public function setUtils( $utils ) {
+      $this->_utils = $utils;
    }
 
-   public function setConstraint( $column, $validator, $options, $errorMessage ) {
-      $objConstraint = new BDT_Constraint( $validator, $options, $errorMessage );
-      $this->_request->addConstraint( $column, BDT_Request::VERB_METHOD_POST, $objConstraint );
+   public function setArguments( $arguments ) {
+      $this->_arguments = $arguments;
    }
 
+   public function getPath() {
+      return $this->_utils->urlFor( $this->_arguments );
+   }
 }
