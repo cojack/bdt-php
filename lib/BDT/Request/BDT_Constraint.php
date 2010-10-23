@@ -83,9 +83,10 @@ class BDT_Constraint {
   private $_intConstraintType;
   private $_strConstraintOperand;
 
-  public function __construct($intConstraintType, $strConstraintOperand) {
+  public function __construct($intConstraintType, $strConstraintOperand, $strMessage ) {
     $this->_intConstraintType = $intConstraintType;
     $this->_strConstraintOperand = $strConstraintOperand;
+    $this->_strConstraintMessage = $strMessage;
   }
 
   public function getConstraintType() {
@@ -94,5 +95,9 @@ class BDT_Constraint {
 
   public function getConstraintOperand() {
     return($this->_strConstraintOperand);
+  }
+
+  public function getConstraintMessage() {
+    return($this->_strConstraintMessage);
   }
 }

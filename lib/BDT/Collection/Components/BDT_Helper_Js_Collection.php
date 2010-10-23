@@ -19,7 +19,7 @@
  **/
 
 /**
- * BDT_SQL_Validator klasa implementuje walidacje zmiennych
+ * BDT_View_Css_Collection
  *
  * @author     Przemysław Czekaj <przemyslaw.czekaj@aichra.pl>
  * @link       http://aichra.pl
@@ -28,20 +28,8 @@
  * @package    BDT
  * @charset    utf8
  **/
-class BDT_SQL_Validator {
-
-   private $_model;
-
-   private $_request;
-
-   public function __construct( $model, $request ) {
-      $this->_model = $model;
-      $this->_request = $request;
+class BDT_Helper_Js_Collection extends BDT_Collection {
+   public function addItem( BDT_Helper_Js $obj, $key = NULL ) {
+      parent::addItem( $obj, $key );
    }
-
-   public function setConstraint( $column, $validator, $options, $errorMessage ) {
-      $objConstraint = new BDT_Constraint( $validator, $options, $errorMessage );
-      $this->_request->addConstraint( $column, BDT_Request::VERB_METHOD_POST, $objConstraint );
-   }
-
 }

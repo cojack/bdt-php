@@ -44,10 +44,11 @@ final class BDT_SQL_Connect {
       $dsn .= ';dbname=' . $this->_config->dbname;
 
       try {
-         self::$_conn = new PDO ( $dsn, $this->_config->user, $this->_config->password );
+         self::$_conn = new PDO( $dsn, $this->_config->user, $this->_config->password );
       } catch( PDOException $error ) {
          trigger_error( $error->getMessage(), E_USER_ERROR );
       }
+
    }
 
    private function __clone() {}

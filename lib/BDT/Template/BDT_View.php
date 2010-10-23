@@ -18,6 +18,11 @@
  *
  **/
 
+BDT_Loader::loadFile( array(
+   './lib/BDT/Template/BDT_View_Variable',
+   './lib/BDT/Collection/Components/BDT_View_Variable_Collection'
+) );
+
 /**
  * BDT_View klasa odpowiedzialna za warstwe prezentacji modułów
  *
@@ -30,22 +35,29 @@
  **/
 class BDT_View {
 
-   private $_content;
+   /**
+    * Zawartość widoku
+    *
+    * @var      string
+    * @access   protected
+    */
+   protected $_content = null;
 
-   private $_path;
+   protected $_path = null;
 
-   private $_tpl;
+   protected $_tpl = null;
 
-   private $_route;
+   protected $_route = null;
 
-   private $_module;
+   protected $_module = null;
 
-   private $_data = array();
+   protected $_data = null;
 
    public function __construct( $path, $tpl, $route ) {
       $this->_path = $path;
       $this->_tpl = $tpl;
       $this->_route = $route;
+      $this->_data = new BDT_View_Variable_Collection;
    }
 
    public function getPath() {
@@ -68,23 +80,6 @@ class BDT_View {
       return $this->_module;
    }
 
-   public function slot( $class, $action = 'render' ) {
-      BDT_Loader::loadFile( array(
-         './lib/BDT/Template/Helpers/BDT_Slot',
-         './app/' . $this->_route->interface . '/slots/' . $class,
-      ) );
-
-      if( class_exists( $class ) ) {
-         $slot = new $class( $this->_tpl, $this->_route );
-         if( $action != 'render' && method_exists( $class, $action ) ) {
-            $slot->{$action}();
-         }
-         $slot->render();
-      }
-
-      return $slot->getContent();
-   }
-
    /**
     * Ustawia wartość zmiennej
     *
@@ -93,7 +88,7 @@ class BDT_View {
     * @return  void
     */
    public function __set( $name, $value ) {
-      $this->_data[$name] = $value;
+      $this->_data->addItem( new BDT_View_Variable( $name, $value ), $name );
    }
 
    /**
@@ -103,8 +98,7 @@ class BDT_View {
     * @return  mixed     value
     */
    public function __get( $name ) {
-      if( array_key_exists( $name, $this->_data ) )
-         return $this->_data[$name];
+      return $this->_data->getItem( $name );
    }
 
 }

@@ -73,35 +73,15 @@ class BDT_SQL_Query  {
       return $result;
    }
 
-   protected function inputs( $arguments = array() ) {
-      $params = '';
-      $count = count( $arguments );
-      for( $i = 0; $i < $count; $i ++ ) {
-         $column = $this->_model->getTable()->getColumn( $arguments[ $i ] );
+   public function callProcedure( $procedureName ) {
+      $driver = BDT_SQL_Connect::getConn()->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-         $params .= ':' . $arguments[ $i ] . '::' . $column->getType();
-         $values[ $i ][ 'value' ] = $column->getValue();
-         $values[ $i ][ 'name' ] = $arguments[ $i ];
+      $engine = 'BDT_SQL_' . mb_convert_case( $driver, MB_CASE_UPPER, 'UTF-8' );
 
-         if( $i < $count - 1 )
-            $params .= ', ';
-      }
+      BDT_Loader::loadFile( array( './lib/BDT/Database/Components/Procedures/'. $engine ) );
 
-      return array( $params, $values );
-   }
+      $procedure = new $engine( $this->_model, $this);
 
-   public function callProcedure( $procedure ) {
-      $function = $this->_model->getProcedure( $procedure );
-      list( $inputs, $values ) = $this->inputs( $function->getArguments() );
-
-      $this->prepare( 'SELECT * FROM "' . $procedure . '" ( ' . $inputs . ' ); ' );
-
-      foreach( $values as $value ) {
-         $this->_statment->bindParam( ':' . $value[ 'name' ], $value[ 'value' ], $value[ 'cast' ] );
-      }
-
-      $this->_statment->execute();
-
-      return $this->_statment->fetch(PDO::FETCH_OBJ);
+      return $procedure->executeProcedure();
    }
 }

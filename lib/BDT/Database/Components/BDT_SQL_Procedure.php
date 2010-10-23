@@ -19,7 +19,7 @@
  **/
 
 /**
- * BDT_SQL_Function_Collection
+ * BDT_SQL_Procedure klasa implementuje procedure w bazie danych
  *
  * @author     Przemysław Czekaj <przemyslaw.czekaj@aichra.pl>
  * @link       http://aichra.pl
@@ -28,11 +28,28 @@
  * @package    BDT
  * @charset    utf8
  **/
+class BDT_SQL_Procedure {
+   private $_name;
 
-BDT_Loader::loadFile( array( './lib/BDT/BDT_Collection' ) );
+   private $_arguments;
 
-class BDT_SQL_Function_Collection extends BDT_Collection {
-   public function addItem( BDT_SQL_Function $obj, $key = NULL ) {
-      parent::addItem( $obj, $key );
+   private $_return;
+
+   public function __construct( $name, $arguments, $return ) {
+      $this->_name = $name;
+      $this->_arguments = $arguments;
+      $this->_return = $return;
+   }
+
+   public function getName() {
+      return $this->_name;
+   }
+
+   public function getArguments() {
+      return $this->_arguments;
+   }
+
+   public function getReturn() {
+      return $this->_return;
    }
 }

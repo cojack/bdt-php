@@ -19,7 +19,7 @@
  **/
 
 /**
- * BDT_Slot klasa odpowiedzialna za warstwe prezentacji slotów
+ * BDT_View_Collection
  *
  * @author     Przemysław Czekaj <przemyslaw.czekaj@aichra.pl>
  * @link       http://aichra.pl
@@ -28,37 +28,11 @@
  * @package    BDT
  * @charset    utf8
  **/
-class BDT_Slot {
 
-   private $_space = 'slot';
+BDT_Loader::loadFile( array( './lib/BDT/BDT_Collection' ) );
 
-   private $_tpl;
-
-   private $_path;
-
-   protected $_slotName;
-
-   private $_html;
-
-   public function __construct( $tpl, $path ) {
-      $this->_tpl = $tpl;
-      $this->_path = $path;
-   }
-
-   public function getPath() {
-      return '/templates/' . $this->_slotName . '.phtml';
-   }
-
-   public function render() {
-      if( $this->_html = $this->_tpl->isCachedSlot( $this->_space, sha1( $this->_slotName ) ) ) {
-      }
-      else
-         $this->_html = $this->_tpl->renderSlot( $this->_space, sha1( $this->_slotName ), clone ($this) );
-
-      //var_dump($content,$content2 );
-   }
-
-   public function getContent() {
-      return $this->_html;
+class BDT_View_Variable_Collection extends BDT_Collection {
+   public function addItem( BDT_View_Variable $obj, $key = NULL ) {
+      parent::addItem( $obj, $key );
    }
 }

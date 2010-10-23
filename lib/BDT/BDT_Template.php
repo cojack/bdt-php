@@ -34,23 +34,25 @@ class BDT_Template {
     * @var     obj
     * @access  private
     */
-   private $_tpl;
-
-   /**
-    * @var     obj
-    * @access  private
-    */
    private $_views;
 
-   /**
-    * Lista miejsc wraz z ich zawartością.
-    * @var array
-    */
-   private $_places = array();
-
-   private $_html;
-
    private $_layout = 'index';
+
+   /**
+    * Kolekcja obiektów Css
+    *
+    * @var      Object      BDT_View_Css
+    * @access   private
+    */
+   private $_css;
+
+   /**
+    * Kolekcja obiektów js
+    *
+    * @var      Object      BDT_View_Js
+    * @access   private
+    */
+   private $_js;
 
    /**
     *
@@ -79,19 +81,50 @@ class BDT_Template {
       $this->_route = $route;
 
       BDT_Loader::loadFile( array(
+         './lib/BDT/Exception/BDT_Template_Exception',
          './lib/BDT/Collection/Components/BDT_View_Collection',
+         './lib/BDT/Collection/Components/BDT_Helper_Css_Collection',
+         './lib/BDT/Collection/Components/BDT_Helper_Js_Collection',
          './lib/BDT/Template/BDT_View',
-         'ini' => './config/paths'
+         './lib/BDT/Template/BDT_Helper',
+         './lib/BDT/Template/Helpers/BDT_Helper_Slot',
+         './lib/BDT/Template/Helpers/BDT_Helper_Css',
+         './lib/BDT/Template/Helpers/BDT_Helper_Js',
       ) );
 
       $this->_views = new BDT_View_Collection;
 
+      $this->_css = new BDT_Helper_Css_Collection;
+      $this->_css->setLoadCallback( 'setCss', $this );
+
+      $this->_js = new BDT_Helper_Js_Collection;
+      $this->_js->setLoadCallback( 'setJs', $this );
+
       $this->_paths = (object)BDT_Loader::getFiles( array(
          array(
             'name' => 'paths.ini',
-            'delete' => FALSE
+            'delete' => TRUE
          )
       ) );
+   }
+
+   public function setCss() {
+      $this->getHelper( 'css' )->setPath( 'reset' );
+      if( $this->_route->interface == 'frontend' ) {
+         $this->getHelper( 'css' )->setPath( 'main' );
+         $this->getHelper( 'css' )->setPath( 'style' );
+      } else {
+         $this->getHelper( 'css' )->setPath( '../js/ext/resources/css/ext-all' );
+      }
+   }
+
+   public function setJs() {
+      if( $this->_route->interface == 'frontend' ) {
+         $this->getHelper( 'js' )->setPath( 'bdt' );
+      } else {
+         $this->getHelper( 'js' )->setPath( 'ext/adapter/ext/ext-base' );
+         $this->getHelper( 'js' )->setPath( 'ext/ext-all-debug' );
+      }
    }
 
    /**
@@ -101,17 +134,30 @@ class BDT_Template {
     *
     */
    public function getView() {
-      try {
-         return new BDT_View( DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . $this->_route->interface . '/modules/' . $this->_route->controller . '/templates/' . $this->_route->action . 'Event.phtml', clone( $this ), $this->_route );
-      } catch( Exception $error ) {
-         trigger_error( $error->getMessage(), E_USER_WARNING );
-      }
+      return new BDT_View( '/app/' . $this->_route->interface . '/modules/' . $this->_route->controller . '/templates/' . $this->_route->action . 'Event.phtml', clone( $this ), $this->_route );
    }
 
-   public function slot( $name, $method ) {
+   private function _slotHelper( $class, $action = 'render' ) {
+      BDT_Loader::loadFile( array(
+         './app/' . $this->_route->interface . '/slots/' . $class,
+      ) );
 
-      if( class_exists( $name ) )
-        $this->slots[] = call_user_func( array( $name, $method ) );
+      if( class_exists( $class ) ) {
+         $slot = new $class( '/app/' . $this->_route->interface . '/templates/' . $class . '.phtml', clone( $this ) );
+
+         $space = 'slot';
+         $checkSum = sha1( $this->_route->interface . '/' . $class );
+
+         if( !$this->isCachedItem( $space, $checkSum, $slot ) ) {
+
+            call_user_func( array( $slot, $action ) );
+
+            $this->renderItem( $space, $checkSum, $slot );
+         }
+
+         return $slot->getContent();
+
+      }
    }
 
    /**
@@ -124,7 +170,33 @@ class BDT_Template {
       $this->_views->addItem( $view, $view->getModule() );
    }
 
-   public function isCachedView( $location, $path, BDT_View $view ) {
+   public function getHelper( $helperName, $slotProperties = array() ) {
+      if( $helperName == 'slot' ) {
+         return $this->_slotHelper( $slotProperties[ 0 ], $slotProperties[ 1 ] );
+      }
+
+      $helper = 'BDT_Helper_' . ucfirst( $helperName );
+
+      BDT_Loader::loadFile( array( './lib/BDT/Template/Helpers/' . $helper  ) );
+
+      if( !class_exists( $helper ) ) {
+         throw new BDT_Template_Exception( sprintf( dgettext( 'errors', 'Brak helpera o nazwie %s' ) , htmlspecialchars( $helper, ENT_QUOTES, 'UTF-8' ) ) );
+      }
+
+      $objHelper = new $helper;
+
+      if ( $objHelper instanceof BDT_Helper_Css ) {
+         $this->_css->addItem( $objHelper );
+      } else if ( $objHelper instanceof BDT_Helper_Js ) {
+         $this->_js->addItem( $objHelper );
+      } else if ( $objHelper instanceof BDT_Helper_Url ) {
+         $objHelper->setUtils( $this->_route->getUtils() );
+      }
+
+      return $objHelper;
+   }
+
+   public function isCachedItem( $location, $path, BDT_View $view ) {
 
       BDT_Loader::loadFile( array(
          './lib/Cache/cache.class',
@@ -140,7 +212,7 @@ class BDT_Template {
          if( $content === FALSE )  #nie ma danych w cache
             return FALSE;
 
-         $view -> setContent( $content );
+         $view->setContent( $content );
 
          return TRUE;
 
@@ -149,32 +221,7 @@ class BDT_Template {
       }
    }
 
-
-   public function isCachedSlot( $location, $path ) {
-
-      BDT_Loader::loadFile( array(
-         './lib/Cache/cache.class',
-         './lib/Cache/fileCacheDriver.class'
-      ) );
-
-      try {
-         $this->_cache = new Cache();
-         $this->_cache->addDriver( 'file', new FileCacheDriver( $this->_paths->cacheDir ) );
-
-         $content = $this->_cache->get( $location , $path, 1 );
-
-         if( $content === FALSE )  #nie ma danych w cache
-            return FALSE;
-
-         return $content;
-
-      } catch ( CacheException $error ){
-         trigger_error( 'Error cache: ' . $error->getMessage(), E_USER_WARNING );
-      }
-   }
-
-   public function renderView( $location, $path, BDT_View $view ) {
-
+   public function renderItem( $location, $path, BDT_View $view ) {
       ob_start();
 
       include( $this->_paths->sourceDir . $view->getPath() );
@@ -188,21 +235,6 @@ class BDT_Template {
       $view -> setContent( $content );
 
       return $this;
-   }
-
-   public function renderSlot( $location, $path, BDT_Slot $slot ) {
-
-      ob_start();
-
-      include( $this->_paths->sourceDir . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . $this->_route->interface . $slot->getPath() );
-
-      $content = ob_get_contents();
-
-      ob_end_clean();
-
-      $this->_cache->set( $location, $path, $content ); #ustawia dane do cache
-
-      return $content;
    }
 
    /**
@@ -220,7 +252,19 @@ class BDT_Template {
       foreach( $this->_views as $key )
          $content .= $key->getContent();
 
-      include( $this->_paths->sourceDir . DIRECTORY_SEPARATOR . 'app' . DIRECTORY_SEPARATOR . $this->_route->interface . DIRECTORY_SEPARATOR . 'templates' . DIRECTORY_SEPARATOR . 'index.phtml'  );
+      include( $this->_paths->sourceDir . '/app/' . $this->_route->interface . '/templates/index.phtml'  );
+   }
 
+   public function getAJAX( $typeRespond ) {
+      $content = '';
+
+      foreach( $this->_views as $key )
+         $content .= $key->getContent();
+
+      if( $typeRespond == 'json' ) {
+         echo json_encode( $content );
+      } else {
+         echo $content;
+      }
    }
 }

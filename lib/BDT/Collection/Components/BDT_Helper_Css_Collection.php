@@ -19,7 +19,7 @@
  **/
 
 /**
- * BDT_SQL_Function klasa implementuje procedure w bazie danych
+ * BDT_View_Css_Collection
  *
  * @author     Przemysław Czekaj <przemyslaw.czekaj@aichra.pl>
  * @link       http://aichra.pl
@@ -28,28 +28,8 @@
  * @package    BDT
  * @charset    utf8
  **/
-class BDT_SQL_Function {
-   private $_name;
-
-   private $_arguments;
-
-   private $_return;
-
-   public function __construct( $name, $arguments, $return ) {
-      $this->_name = $name;
-      $this->_arguments = $arguments;
-      $this->_return = $return;
-   }
-
-   public function getName() {
-      return $this->_name;
-   }
-
-   public function getArguments() {
-      return $this->_arguments;
-   }
-
-   public function getReturn() {
-      return $this->_return;
+class BDT_Helper_Css_Collection extends BDT_Collection {
+   public function addItem( BDT_Helper_Css $obj, $key = NULL ) {
+      parent::addItem( $obj, $key );
    }
 }
