@@ -29,12 +29,11 @@
  * @charset    utf8
  **/
 interface BDT_Event_Handler {
-
-   public function setDebug( BDT_Debugger $debug );
-
-   public function setTpl( BDT_Template $tpl );
-
    public function setRoute( BDT_Route $route );
+
+   public function preEvent();
+
+   public function postEvent();
 
    public function handledEvent();
 

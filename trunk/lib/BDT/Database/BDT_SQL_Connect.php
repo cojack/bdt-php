@@ -18,6 +18,9 @@
  *
  **/
 
+require_once('./lib/BDT/Database/Components/BDT_SQL_PDO.php');
+require_once('./lib/BDT/Database/Components/BDT_SQL_PDO_Statement.php');
+
 /**
  * BDT_SQL_Connect klasa odpowiedzialna za połączenie z bazą danych
  *
@@ -28,44 +31,30 @@
  * @package    BDT
  * @charset    utf8
  **/
-final class BDT_SQL_Connect {
+class BDT_SQL_Connect {
 
-   private static $_conn;
+   private static $_conn = array();
 
-   private function __construct() {
-      $this->_config = (object)BDT_Loader::getFiles( array( array(
-          'name' => 'database.ini',
-          'delete' => TRUE
-      ) ) );
+   private static function _prepareConnect($type) {
+      $config = BDT_Loader::loadFileINI( './config/database' );
 
-      $dsn  = $this->_config->engine . ':';
-      $dsn .= 'host=' . $this->_config->host;
-      $dsn .= isset( $this->_config->port ) ? ';port=' . $this->_config->port : ';';
-      $dsn .= ';dbname=' . $this->_config->dbname;
+      $dsn  = $config[$type]['engine'] . ':';
+      $dsn .= 'host=' . $config[$type]['host'];
+      $dsn .= isset( $config[$type]['port'] ) ? ';port=' . $config[$type]['port'] : ';';
+      $dsn .= ';dbname=' . $config[$type]['dbname'];
 
-      try {
-         self::$_conn = new PDO( $dsn, $this->_config->user, $this->_config->password );
-      } catch( PDOException $error ) {
-         trigger_error( $error->getMessage(), E_USER_ERROR );
-      }
+      $pdo = new BDT_SQL_PDO( $dsn, $config[$type]['user'], $config[$type]['password'] );
+      $pdo->setAttribute( PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION );
 
+      return $pdo;
    }
 
-   private function __clone() {}
-
-   public static function getInstance( $config ) {
-      BDT_Loader::loadFile( $config );
-
-      if( !isset( self::$_conn ) ) {
-         new BDT_SQL_Connect();
+   public static function connect($type) {
+      if( !isset( self::$_conn[ $type ] ) || !( self::$_conn[ $type ] instanceof PDO ) ) {
+         self::$_conn[ $type ] = self::_prepareConnect( $type );
       }
 
-      return self::$_conn;
-
-   }
-
-   public static function getConn() {
-      return isset( self::$_conn ) ? self::$_conn : FALSE;
+      return self::$_conn[ $type ];
    }
 
 }

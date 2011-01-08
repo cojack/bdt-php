@@ -1,37 +1,41 @@
 <?php
-global $routing;
-$routing = array(
-   array(
-      'name' => 'home',
-      'url' => '',
-      'parametrs' => array (
-         'interface' => 'frontend',
-         'controller' => 'default',
-         'action' => 'index'
-      ),
-   ),
-   array(
-      'url' => ':controller/:action/:lang',
-      'parametrs' => array (
-         'interface' => 'frontend',
-         'lang' => 'pl',
-         'requirements' => array(
-            'lang' => '\d{1,2}'
-         ),
-      ),
-   ),
-   array(
-      'url' => 'admin/:controller/:action',
-      'parametrs' => array (
-         'interface' => 'backend',
-         'controller' => 'login',
-         'action' => 'index',
-      ),
-   ),
+
+$mapper = new Horde_Routes_Mapper;
+
+$mapper->connect( 
+   'home',
+   '/',
+   array (
+      'interface' => 'frontend',
+      'controller' => 'default',
+      'action' => 'index'
+   )
 );
 
-global $controllers;
-$controllers = array (
+$mapper->connect(
+   ':controller/:action/:lang',
+   array (
+      'interface' => 'frontend',
+      'lang' => 'pl',
+      'requirements' => array(
+         'lang' => '[a-z]{1,2}'
+      ),
+   )
+);
+
+$mapper->connect(
+   'admin/:controller/:action',
+   array (
+      'interface' => 'backend',
+      'controller' => 'default',
+      'action' => 'index',
+   )
+);
+
+$mapper->createRegs( array(
    'default',
    'login'
+   )
 );
+
+return $mapper;

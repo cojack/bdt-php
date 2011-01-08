@@ -28,60 +28,31 @@
  * @package    BDT
  * @charset    utf8
  **/
-
-BDT_Loader::loadFile( array( './lib/BDT/Collection/Components/BDT_SQL_Query_Collection' ) );
-
 class BDT_SQL_Query  {
-
-   private $_where = array();
-
-   private $_from;
-
-   private $_statment;
-
-   private $sql;
 
    protected $_conn;
 
-   protected $_inputs;
+   protected $_mapper;
 
-   protected $_model;
+   public function __construct( $mapper ) {
+      $this->_mapper = $mapper;
 
-   public function __construct( $model ) {
-      $this->_model = $model;
-
-      $this->_conn = BDT_SQL_Connect::getConn();
-
-      $this->query = new BDT_SQL_Query_Collection;
+      $this->_conn = BDT_SQL_Connect::connect('read');
    }
 
    public function prepare( $sql ) {
-      try {
-         $this->_statment = $this->_conn->prepare( $sql );
-      } catch ( PDOException $error ) {
-         trigger_error( $error->getMessage(), E_USER_WARNING );
-      }
-      return $this->_statment;
+      return $this->_conn->prepare( $sql );
    }
 
-   public function toArray() {
-      try {
-         $result = $this->_statment->fetchAll();
-      } catch ( PDOException $error ) {
-         trigger_error( $error->getMessage(), E_USER_WARNING );
-      }
-      return $result;
-   }
+   public function callProcedure( BDT_SQL_Procedure $procedure ) {
+      $driver = $this->_conn->getAttribute(PDO::ATTR_DRIVER_NAME);
 
-   public function callProcedure( $procedureName ) {
-      $driver = BDT_SQL_Connect::getConn()->getAttribute(PDO::ATTR_DRIVER_NAME);
+      $engine = 'BDT_SQL_' . strtoupper( $driver );
 
-      $engine = 'BDT_SQL_' . mb_convert_case( $driver, MB_CASE_UPPER, 'UTF-8' );
+      require_once( './lib/BDT/Database/Components/BDT_SQL_PL.php' );
+      require_once( './lib/BDT/Database/Components/Procedures/'. $engine .'.php' );
 
-      BDT_Loader::loadFile( array( './lib/BDT/Database/Components/Procedures/'. $engine ) );
-
-      $procedure = new $engine( $this->_model, $this);
-
-      return $procedure->executeProcedure();
+      $plsql = new $engine( $procedure );
+      return $plsql->invoke();
    }
 }

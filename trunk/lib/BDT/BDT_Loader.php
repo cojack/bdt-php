@@ -32,41 +32,13 @@ class BDT_Loader {
 
    private static $_path;
 
-   private static $_files;
-
-   public static function initialize() {
-      chdir( './..' );
+   public static function set_path($path) {
+      chdir($path.'/../../');
       self::$_path = getcwd();
 
-      require_once( self::$_path . DIRECTORY_SEPARATOR . './lib/BDT/Collection/Components/BDT_File_Collection.php' );
-
-      self::$_files = new BDT_File_Collection;
+      set_include_path(get_include_path() . PATH_SEPARATOR . self::$_path);
    }
 
-   /**
-    * Metoda przyjmuje argument jako tablice iteracyjną
-    * Adres do pliku powinien zaczynać się od ./ i uwzględnić
-    * zmianę ścieżki podczas wczytywania danych.
-    * Zachowywujemy się tak jakbyśmy byli w / tego cms'a.
-    *
-    * @access  public
-    * @param   array    $files   Tablica w postaci array ( 'plik' => 'typ', 'plik' => 'typ', 'plik' => 'typ' ... );
-    * @return  void
-    */
-   public static function loadFile( $files = array() ) {
-      foreach( $files as $file => $fileType ) {
-         $method = '_loadFile' . ( is_int( $file ) ? 'PHP' : mb_strtoupper( $fileType, 'UTF-8' ) );
-         if( is_int($file) ) {
-            $file = $fileType;
-         }
-         self::$method( $file );
-      }
-   }
-
-   private static function _loadFilePHP( $file ) {
-      if( self::_checkFile( $file . '.php' ) )
-         require_once( self::$_path . DIRECTORY_SEPARATOR . $file . '.php' );
-   }
 
    /**
     * Metoda wczytuje pojedyncze pliki XML
@@ -75,65 +47,28 @@ class BDT_Loader {
     * @param   string    $files   Względna ścieżka do pliku
     * @return  object    Xml object
     */
-   private static function _loadFileXML( $file ) {
+   public static function loadFileXML( $file ) {
       libxml_use_internal_errors( TRUE );
-      $sxe = new SimpleXMLElement( self::$_path . DIRECTORY_SEPARATOR . $file . '.xml', NULL, TRUE );
+      $sxe = new SimpleXMLElement( self::$_path . '/' . $file . '.xml', NULL, TRUE );
       if( $sxe === FALSE ) {
          $errorMsg  = 'Błąd w pliku XML: ' . $file . '.xml' . '<br />';
-         $errorMsg .= 'Ścieżka: ' . self::$_path . DIRECTORY_SEPARATOR . $file . '.xml' . '<br />';
+         $errorMsg .= 'Ścieżka: ' . self::$_path . '/' . $file . '.xml' . '<br />';
          foreach( libxml_get_errors() as $error ) {
             $errorMsg .=  '<p>' . $error->message . '</p><br />';
          }
-         trigger_error( $errorMsg , E_USER_WARNING );
+         throw new Exception( $errorMsg , E_USER_WARNING );
       } else {
-         self::$_files->addItem( $sxe, basename( $file ) . '.xml' );
+         return $sxe;
       }
-
-      $sxe = NULL;
    }
-
-
-   private static function _loadFileINI( $file ) {
-      $ini = parse_ini_file( self::$_path . DIRECTORY_SEPARATOR . $file . '.ini', true);
+   
+   public static function loadFileINI( $file ) {
+      $ini = parse_ini_file( self::$_path . '/' . $file . '.ini', true);
       if( $ini === FALSE ) {
-         trigger_error( 'Zła ścieżka i/lub nazwa dla pliku: '. $file . "\n" . 'Ścieżka: ' . self::$_path . $file . '.ini', E_USER_WARNING );
+         throw new Exception( 'Zła ścieżka i/lub nazwa dla pliku: '. $file . "\n" . 'Ścieżka: ' . self::$_path . $file . '.ini', E_USER_WARNING );
       } else {
-         self::$_files->addItem( $ini, basename( $file ) . '.ini' );
+         return $ini;
       }
-      $ini = NULL;
-   }
-
-   public static function getFiles( $files = array() ) {
-      if( empty( $files ) )
-         return NULL;
-
-      $n = count( $files );
-
-      $tabFiles = NULL;
-
-      try {
-         if( $n <= 1 ) {
-               $tabFiles = self::getFile( $files[ 0 ][ 'name' ], (boolean)$files[ 0 ][ 'delete' ] );
-         } else {
-            $tabFiles = array();
-            foreach( $files as $file )
-               $tabFiles[] = self::getFile( $file['name'], (boolean)$file['delete'] );
-         }
-      } catch( BDT_Collection_Exception $error ) {
-         trigger_error( $error->getMessage() , E_USER_WARNING  );
-      }
-
-      return $tabFiles;
-   }
-
-
-   private static function getFile( $file, $deleteFile = FALSE ) {
-      $tmpFile = self::$_files->getItem( $file );
-      if( $deleteFile === TRUE ) {
-         self::$_files->removeItem( $file );
-      }
-
-      return $tmpFile;
    }
 
 
@@ -144,14 +79,14 @@ class BDT_Loader {
     * @return  boolean  true, false
     */
    private static function _checkFile( $file ) {
-      if( is_file( self::$_path . DIRECTORY_SEPARATOR . $file ) ) {
-         if( is_readable( self::$_path . DIRECTORY_SEPARATOR . $file ) ) {
+      if( is_file( self::$_path . '/' . $file ) ) {
+         if( is_readable( self::$_path . '/' . $file ) ) {
             return TRUE;
          } else {
-            trigger_error( 'Plik: '. $file . ' jest nie dla odczytu, sprawdź uprawnienia.' , E_USER_WARNING );
+            throw new Exception( 'Plik: '. $file . ' jest nie dla odczytu, sprawdź uprawnienia.' , E_USER_WARNING );
          }
       } else {
-         trigger_error( 'Zła ścieżka i/lub nazwa dla pliku: '. $file . "\n" . 'Ścieżka: ' . self::$_path  . DIRECTORY_SEPARATOR .  $file , E_USER_WARNING );
+         throw new Exception( 'Zła ścieżka i/lub nazwa dla pliku: '. $file . "\n" . 'Ścieżka: ' . self::$_path  . '/' .  $file , E_USER_WARNING );
       }
       return FALSE;
    }

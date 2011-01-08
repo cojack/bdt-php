@@ -31,7 +31,7 @@
 require_once('./../lib/BDT/BDT_Bootstrap.php');
 
 class Bootstrap extends BDT_Bootstrap {
-
+   
    /**
     * Pseoud inicjalizator klasy
     *

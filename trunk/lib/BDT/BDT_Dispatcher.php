@@ -32,10 +32,6 @@ class BDT_Dispatcher {
 
    private $_route;
 
-   private $_tpl;
-
-   private $_debug;
-
    /**
     * Konstruktor klasy
     *
@@ -45,11 +41,7 @@ class BDT_Dispatcher {
     * @param   string   $event   Nazwa modułu
     * @return  void
     */
-   public function __construct( $debug, $tpl, $route ) {
-
-      $this -> _debug = $debug;
-
-      $this->_tpl = $tpl;
+   public function __construct( $route ) {
 
       $this->_route = $route;
    }
@@ -63,25 +55,18 @@ class BDT_Dispatcher {
     * @return  void
     */
    public function handleEvent() {
-      try {
-         BDT_Loader::loadFile( array(
-            './lib/BDT/Event/BDT_Event_Handler',
-            './lib/BDT/Event/BDT_Front_Event_Handler',
-            './lib/BDT/Event/BDT_Back_Event_Handler',
-            './app/' . $this->_route->interface . '/modules/' . $this->_route->controller . '/actions/' . $this->_route->controller
-         ) );
+      require_once('./lib/BDT/Event/BDT_Event_Handler.php');
+      require_once('./lib/BDT/Event/BDT_'.ucfirst(substr($this->_route->getInterface(), 0, -3)).'_Event_Handler.php');
+      require_once('./app/' . $this->_route->getInterface() . '/events/' . $this->_route->getController() . 'Event/event.php');
 
-         $name = 'BDT_Handler_' . ucfirst( $this->_route->controller );
+      $eventName = 'BDT_Handler_' . ucfirst( $this->_route->getController() );
 
-         if( class_exists( $name ) ) {
-            $handObj = new $name;
-            $handObj->setDebug( $this->_debug )->setTpl( $this->_tpl )->setRoute( $this->_route );
-            $handObj->handledEvent();
-         } else { echo _( 'Nie ma takiego kontrolera' ) ;
-            throw new Exception ( _( 'Nie ma takiego kontrolera' ) );
-         }
-      } catch ( Exception $error ) {
-         trigger_error( $error, E_USER_WARNING );
+      if( class_exists( $eventName ) ) {
+         $event = new $eventName;
+         $event->setRoute( $this->_route );
+         $event->handledEvent();
+      } else {
+         throw new Exception ( sprintf( dgettext( 'errors', 'Nie ma takiego kontrolera: %s' ) , $eventName ) );
       }
    }
 }

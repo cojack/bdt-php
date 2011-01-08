@@ -18,6 +18,10 @@
  *
  **/
 
+require_once('./lib/BDT/Request/BDT_Constraint.php');
+require_once('./lib/BDT/Request/BDT_Constraint_Failure.php');
+require_once('./lib/BDT/Request/BDT_Header.php');
+
 /**
  * BDT_Request
  *
@@ -28,12 +32,6 @@
  * @package    BDT
  * @charset    utf8
  **/
-
-BDT_Loader::loadFile( array(
-   './lib/BDT/Request/BDT_Constraint',
-   './lib/BDT/Request/BDT_Constraint_Failure'
-) );
-
 class BDT_Request {
 
    /**
@@ -370,6 +368,11 @@ class BDT_Request {
       };
     };
     return(!($anyFail));  // Returns TRUE if all tests passed, otherwise returns FALSE
+  }
+
+  public function setHeader() {
+    $method = 'e' . ucfirst(func_get_arg(0));
+    call_user_func_array( array( 'BDT_Header', $method ), func_get_args() );
   }
 
   public function getConstraintFailures() {
