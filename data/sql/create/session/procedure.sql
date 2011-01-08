@@ -10,24 +10,41 @@ CREATE FUNCTION "update_session"( INTEGER ) RETURNS VOID AS $$
 $$ LANGUAGE 'sql';
 
 CREATE FUNCTION "insert_session"( VARCHAR, VARCHAR ) RETURNS INTEGER AS $$
-   INSERT INTO
-      "session"."user"
-   (
-      "id_ascii",
-      "loged",
-      "id_user",
-      "user_agent"
-   )
-   VALUES
-   (
-      $1,
-      'f',
-      NULL,
-      $2
-   ) 
-   RETURNING 
-      "id_session";
-$$ LANGUAGE 'sql';
+   DECLARE
+      "id_session" INTEGER DEFAULT NULL;
+   BEGIN
+      PERFORM
+         1
+      FROM
+         "session"."user"
+      WHERE
+         "id_ascii" = $1;
+
+      IF NOT FOUND THEN
+
+         INSERT INTO
+            "session"."user"
+         (
+            "id_ascii",
+            "loged",
+            "id_user",
+            "user_agent"
+         )
+         VALUES
+         (
+            $1,
+            'f',
+            NULL,
+            $2
+         ) 
+         RETURNING 
+            "session"."user"."id_session" INTO "id_session";
+
+      END IF;
+
+      RETURN "id_session";
+   END;
+$$ LANGUAGE 'plpgsql';
 
 CREATE FUNCTION "login"( INTEGER, INTEGER ) RETURNS VOID AS $$
       UPDATE
@@ -56,13 +73,13 @@ CREATE FUNCTION "logout"( INTEGER ) RETURNS VOID AS $$
          "id_session" = $1;
 $$ LANGUAGE 'sql';
 
-CREATE FUNCTION "clean_session" ( VARCHAR, INTEGER ) RETURNS VOID AS $$
+CREATE OR REPLACE FUNCTION "clean_session" ( VARCHAR, INTEGER ) RETURNS VOID AS $$
       DELETE FROM
          "session"."user"
       WHERE
          "id_ascii" = $1
       OR
-         ( EXTRACT( SECONDS FROM (NOW() - "add_date")) > $2 );
+         ( EXTRACT(EPOCH FROM ( NOW() - "add_date" ))::INTEGER > $2 );
 
       DELETE FROM
          "session"."variable"

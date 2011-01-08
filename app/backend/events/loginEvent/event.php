@@ -18,7 +18,6 @@ class BDT_Handler_Login extends BDT_Back_Event_Handler {
    }
 
    public function indexEvent(){
-     $this->_session->login( 'cojack', 'tuniu1987' );
       return $this->_view->display();
    }
 

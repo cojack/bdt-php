@@ -11,11 +11,11 @@ class SQL_Session extends SQL_Session_Procedure {
          WHERE 
             "id_ascii" = :php_session_id
          AND 
-            (EXTRACT(SECOND FROM (NOW() - "add_date")) < :session_lifespan::INT )
+            (EXTRACT(EPOCH FROM ( NOW() - "add_date") )::INTEGER < :session_lifespan::INT )
          AND
             "user_agent" = :user_agent
          AND
-            ( (EXTRACT(SECOND FROM (NOW() - "mod_date")) < :session_timeout::INT ) OR "mod_date" IS NULL );
+            ( (EXTRACT(EPOCH FROM ( NOW() - "mod_date" ) )::INTEGER < :session_timeout::INT ) OR "mod_date" IS NULL );
 SQL
       );
 
