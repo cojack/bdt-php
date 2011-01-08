@@ -1,1 +1,114 @@
-Projekt powstał na rzecz firmy Aichra.pl, dokumentacja wraz z następstwem czasu zostanie ukończona.
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+           WAŻNE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Jak nie chcesz poczuć się zgorszony to nie czytaj tego.
+
+
+ __________ 
+< bdt ssie >
+ ---------- 
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        MNIEJ WAŻNE
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+Projekt powstał na rzecz firmy Aichra.pl, dokumentacja wraz z biegiem czasu zostanie ukończona lub nie :D
+
+0) Wstęp
+1) Struktura
+2) Jak to działa
+3) Procedury SQL
+4) CLI
+5) Instalacja
+6) Podziękowania
+7) Za co ja dziękuje i komu
+
+Framework jest bardzo prosty, w miarę szybki ;) Struktura jest bardzo podobna do Symfony, Zenda.
+Po jaką cholerę zapytacie się powstał ten framework? A to dlatego żeby sobie udowodnić że dam radę.
+Jak to czytacie tzn że dałem radę.
+
+Ver 0.0.0.0.0.0.0.0.0.0.0.0.00.0..0......0...0.0.00..0...... już się pogubiłem.
+
+1) Struktura
+
+* app/ - Nasze kontrolery i liby, żeby dispatcher (dyspozytor mógł je łapać nazewnictwo musi być takie
+jak w przykładzie z "default" controllerem.
+
+* config/ - wymóg do dwóch plików to tylko database.ini oraz routing.php w obu z nich zobaczycie jak wygląda
+przykład, także będziecie mogli przeprowadzić na tej podstawie swoje modyfikacje. Dodam że routing działa
+na HordeRoutes http://dev.horde.org/routes/manual/index.html
+
+* data/ - a tutaj mamy dwa katalogi language/ i sql/. W language trzymamy dane dla gettext, jak ktoś się nie zna
+to odsyłam do manuala, oczywiście jest przykład w środku jak to wygląda. W sql jest struktura której należy się
+trzymać by poprawnie zainstalować bazę, pamiętajcie że to wszystko było z myślą o postgresql, także constrainy
+i inne żeczy musimy zachować ręcznie, baza za nas tego nie wie że wrzucamy relację której jeszcze nie ma, takie
+rzeczy należy robić samemu. Ale jak przejżycie install to się kapniecie
+
+* lib/ - głowne biblioteki frameworka, jeżeli chcecie pisać coś swojego to wpierdolić tam wszystko a później
+w kodzie gdzieś nagrzebać by to wrzucić ;)
+
+* tmp/ - cache, logi z apache, co tylko chceta
+
+* web/ - dokładnie na ten katalog powinień być ustawiony document root z vhosta w apachu, albo zrobić dowiązanie
+symboliczne z document root na ten katalog + dopisać w .htaccess follow symlinks, a zresztą co ja wam będę mówił
+powiniście to wiedzieć. W nim jest index.php, jak zmienicie, i będzie coś nie działać to rączki do Boga i się modlić.
+Reszta katalogów w środku jest chyba jasna i nie wymaga tłumaczenia?
+
+2) Jak to kurwa działa?
+
+Normalnie.
+
+Odpalany jest index.php w nim jest tworzony obiekt Bootstrap, który dziedziczy z BDT_Bootstrap a w jego konstruktorze
+dzieją sie wszystkie rzeczy. Jest tworzony obiekt Route oraz Dispatcher, z route jest pobierane wszystko co jest
+przekazywane do serwera, get, post, request, cookie sruki. Dispatcher po akcji z Route->request wie jaki jest interfejs
+więc wczytuje odpowiedni event controller, czy to frontend czy backend. Oraz wywołuje magiczną metodę handleEvent,
+nie robi nic innego jak tworzy obiekt naszego kontrollera i wywołuje w nim akcję w stylu: /default/index, zostanie wywołany
+plik z : /app/frontend/events/defaultEvent/event.php oraz akcja z tego kontrollera który powinień nosić nazwę BDT_Handler_Default
+która się bedzie zwać indexEvent, co rozumiemy że indexEvent jest oczywiście metodą tego obiektu.
+
+Proste nie? Mówiłem że tak jak w symfony czy w zendzie, tylko lepiej xD
+
+
+2.a) Front Controller, Back Controller, toć to jeden huj.
+
+No wiem, i co z tego? Jak coś mi w głowie urodzi innego, to nie będę przepisywał na nowo tylko sobie editne. A jak tak się nie stanie
+To wypierdolę jeden i zrobie ogólny controller.
+
+2.b) Backend
+
+Moim założeniem było NO HTML. Fajnie co? Cały backend jest napisany w js :D Hahaha zero kodu html, albo znasz ExtJS albo piszesz sobie ręcznie.
+Dlaczego JS a nie HTML? A po cholerę męczyć serwer by mi parsował w php html co jest mega nie wydajne? A używająć JS męczysz tylko swoją
+przeglądarke, i swój komputer. Mi się to cholernie podoba, poza tym nie lubię się bawić HTML'em. To już nie te lata że miałem siłę się w css pier...
+
+
+3) Procedury SQL? Co to kurwa jest?
+
+Hujów sto jak nie wiesz co. Jeżeli nie wiesz czym są procedury w sql, to ten framework nie jest dla Ciebie.
+Musiałbyś go przerobić by użyć w nim zwykłego CRUD'a, albo dopiąć Doctrine, CZEGO NIE POLECAM! Także jeżeli,
+obcy jest Ci język PL/SQL, wywal tego frameworka a do autora, czyli do mnie napisz że jest debilem pisząc coś czego nikt
+nie będzie używał :)
+
+4) CLI
+Command-line interface - nie ma, jak napiszesz to będzie :D
+
+5) Instalacja
+No to konsola, sql i pizda na tłoki.
+
+6) Podziękowania
+Nie ma za co ;) no już nie musisz no, przestań się podlizywać i tak wiem że jestem zajebisty.
+
+7) Za co ja dziękuje i komu
+Ojcu że mnie spłodził, mamie że mnie urodziła.
+
+8) Innym
+13:27 <+maur> redinn:/home/maur# cat irclogs/IRCnet/#php.pl.log | grep "cojack was kicked" -c 
+13:27 <+maur> 3
+
+adi^R, iksik, slonik, carbol(a|y)mer, RT, jezik, QSix, Celin i całej reszcie kanału @lublin.irc.pl#php.pl
