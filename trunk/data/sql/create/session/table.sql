@@ -3,7 +3,7 @@ CREATE SCHEMA "session";
 CREATE TABLE "session"."user" (
   "id_session" SERIAL PRIMARY KEY NOT NULL,
   "id_user" INTEGER REFERENCES "user"."user" DEFAULT NULL,
-  "id_ascii" VARCHAR(32),
+  "id_ascii" VARCHAR(32) UNIQUE,
   "loged" BOOLEAN,
   "user_agent" VARCHAR(32),
   "add_date" TIMESTAMP DEFAULT NOW(),
