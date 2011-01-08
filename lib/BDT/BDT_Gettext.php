@@ -18,8 +18,6 @@
  *
  **/
 
-BDT_Loader::loadFile( array( './config/paths' => 'ini', './config/language' => 'ini' ) );
-
 /**
  * BDT_Gettext klasa odpowiedzialna za gettext
  *
@@ -34,7 +32,7 @@ final class BDT_Gettext {
 
    private $_domain = 'messages';
    private $_lang;
-   private $_language = array();
+   private $_language = array('pl' => 'pl_PL');
    private $_paths = array ();
 
    /**
@@ -48,16 +46,6 @@ final class BDT_Gettext {
     */
    public function __construct( $lang ) {
       $this->_lang = $lang;
-
-      list( $this->_paths, $this->_language ) = BDT_Loader::getFiles( array(
-         array(
-            'name' => 'paths.ini'
-         ),
-         array(
-            'name' => 'language.ini',
-            'delete' => TRUE
-         )
-      ) );
 
       putenv( 'LANGUAGE=' . $this->_language[ $this->_lang ] );
 
@@ -81,7 +69,7 @@ final class BDT_Gettext {
     * @return   Object  BDT_Gettext
     */
    public function initDomain() {
-      bindtextdomain( $this->_domain, $this->_paths->sourceDir . '/data/language' );
+      bindtextdomain( $this->_domain, './data/language' );
       bind_textdomain_codeset( $this->_domain, 'UTF-8' );
       textdomain( $this->_domain );
       return $this;
@@ -95,7 +83,7 @@ final class BDT_Gettext {
     * @return   void
     */
    public function bindDomain() {
-      bindtextdomain( $this->_domain, $this->_paths->sourceDir . '/data/language' );
+      bindtextdomain( $this->_domain, './data/language' );
    }
 
    public function setDomain( $domain ) {

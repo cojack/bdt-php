@@ -29,7 +29,7 @@
  * @charset    utf8
  **/
 
-require_Once( './../lib/BDT/BDT_Loader.php' );
+require_once( './../lib/BDT/BDT_Loader.php' );
 
 abstract class BDT_Bootstrap {
 
@@ -40,14 +40,6 @@ abstract class BDT_Bootstrap {
     * @var     object   BDT_Debbuger
     */
    private $_debug;
-
-   /**
-    * Obiekt klasy BDT_Template
-    *
-    * @access  private
-    * @var     object   BDT_Template
-    */
-   private $_tpl;
 
    /**
     * Obiekt klasy BDT_Template
@@ -82,26 +74,13 @@ abstract class BDT_Bootstrap {
     * @return   void
     */
    public function __construct() {
-      BDT_Loader::initialize();
-      $this->_initDebug()->_initRouter()->_initTemplate()->_initDispatcher();
-   }
+      BDT_Loader::set_path(__DIR__);
 
-   /**
-    * Inicjalizacja obsługi szablonów
-    *
-    * @param   void
-    * @access  private
-    * @return  this
-    */
-   private function _initTemplate() {
-
-      BDT_Loader::loadFile( array( './lib/BDT/BDT_Template' ) );
-
-      $this->_tpl = new BDT_Template( $this->_debug, $this->_route );
-
-      $this->_debug->setTpl( $this->_tpl );
-
-      return $this;
+      try {
+          $this->_initDebug()->_initTempalte()->_initRouter()->_initDispatcher();
+      } catch (Exception $error) {
+          BDT_Debugger::setError($error);
+      }
    }
 
    /**
@@ -112,9 +91,9 @@ abstract class BDT_Bootstrap {
     * @return  this
     */
    private function _initRouter() {
-      BDT_Loader::loadFile( array( './lib/BDT/BDT_Route' ) );
+      require_once( './lib/BDT/BDT_Route.php' );
 
-      $this->_route = new BDT_Route( $this->_debug, $this->_tpl );
+      $this->_route = new BDT_Route();
 
       $this->_route->initialize();
 
@@ -129,9 +108,9 @@ abstract class BDT_Bootstrap {
     * @return  void
     */
    private function _initDispatcher() {
-      BDT_Loader::loadFile( array( './lib/BDT/BDT_Dispatcher' ) );
+      require_once( './lib/BDT/BDT_Dispatcher.php' );
 
-      $this->_dispatcher = new BDT_Dispatcher( $this->_debug, $this->_tpl, $this->_route );
+      $this->_dispatcher = new BDT_Dispatcher( $this->_route );
 
       $this->_dispatcher->handleEvent();
    }
@@ -144,9 +123,16 @@ abstract class BDT_Bootstrap {
     * @return  this
     */
    private function _initDebug() {
-      BDT_Loader::loadFile( array( './lib/BDT/BDT_Debugger' ) );
+      require_once( './lib/BDT/BDT_Debugger.php' );
 
       $this->_debug = BDT_Debugger::initialize( $this->_environment );
+
+      return $this;
+   }
+
+   private function _initTempalte() {
+      require_once('./lib/Twig/Autoloader.php');
+      Twig_Autoloader::register();
 
       return $this;
    }
@@ -157,7 +143,8 @@ abstract class BDT_Bootstrap {
     * @return  void
     */
    public function __destruct() {
-      unset( $this->_dispatcher, $this->_tpl , $this->_route, $this->_debug );
+      unset( $this->_dispatcher, $this->_route, $this->_debug );
+      
       exit(0);
    }
 

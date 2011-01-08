@@ -44,7 +44,7 @@ class BDT_Route {
     * @access   private
     * @var      Object      BDT_Request
     */
-   private $_request;
+   private static $_request;
 
    /**
     * Obiekt klasy BDT_Language, btw niefortunna nazwa klasy...
@@ -72,20 +72,15 @@ class BDT_Route {
     * @return   void
     */
    public function __construct() {
-      BDT_Loader::loadFile( array(
-         './lib/Horde/Mapper',
-         './lib/Horde/Exception',
-         './lib/Horde/Route',
-         './lib/Horde/Utils',
-         './config/routing',
-         './lib/BDT/Request/BDT_Request',
-         './lib/BDT/BDT_Gettext'
-      ) );
+      require_once('./lib/Horde/Mapper.php');
+      require_once('./lib/Horde/Exception.php');
+      require_once('./lib/Horde/Route.php');
+      require_once('./lib/Horde/Utils.php');
+      require_once('./lib/BDT/Request/BDT_Request.php');
+      require_once('./lib/BDT/BDT_Gettext.php');
 
-      $this->_request = new BDT_Request;
-      $this->_request->setRedirectOnConstraintFailure( TRUE );
-
-      $this->_mapper = new Horde_Routes_Mapper;
+      self::$_request = new BDT_Request;
+      self::$_request->setRedirectOnConstraintFailure( TRUE );
    }
 
    /**
@@ -114,7 +109,7 @@ class BDT_Route {
     */
    private function _setLanguage() {
       $this->_gettext = new BDT_Gettext( $this->lang );
-      $this->_gettext->setDomain()->loadFile();
+      $this->_gettext->setDomain('bdt')->initDomain();
    }
 
    /**
@@ -128,17 +123,7 @@ class BDT_Route {
     * @return   self        BDT_Route
     */
    private function _setRoute() {
-
-      global $routing, $controllers;
-
-      $n = count( $routing );
-
-      for( $i = 0; $i < $n; $i++) {
-         $this->_mapper->connect( isset( $routing[ $i ][ 'name' ] ) ? $routing[ $i ][ 'name' ] : NULL, $routing[ $i ][ 'url' ], $routing[ $i ][ 'parametrs' ] );
-      }
-
-      $this->_mapper->createRegs( $controllers );
-
+      $this->_mapper = include_once('./config/routing.php');
       $this->_route = $this->_mapper->match( $this->_url );
 
       if( $this->_route == NULL ) {
@@ -160,7 +145,7 @@ class BDT_Route {
     * @return   self        BDT_Route
     */
    private function _checkUrl() {
-      $url = $this->_request->getParameterValue( 'q' );
+      $url = self::$_request->getParameterValue( 'q' );
 
       $this->_url = '/';
 
@@ -180,7 +165,7 @@ class BDT_Route {
     * @return   Object      BDT_Request
     */
    public function getRequest() {
-      return $this->_request;
+      return self::$_request;
    }
 
    /**
@@ -203,6 +188,18 @@ class BDT_Route {
     */
    public function getGettext() {
       return $this->_gettext;
+   }
+
+   public function getController() {
+      return $this->_route[ 'controller' ];
+   }
+
+   public function getInterface() {
+      return $this->_route[ 'interface' ];
+   }
+
+   public function getAction() {
+      return $this->_route[ 'action' ];
    }
 
    /**

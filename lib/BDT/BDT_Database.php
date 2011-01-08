@@ -18,6 +18,12 @@
  *
  **/
 
+require_once('./lib/BDT/Exception/BDT_Database_Exception.php');
+require_once('./lib/BDT/Database/BDT_SQL_Connect.php');
+require_once('./lib/BDT/Database/BDT_SQL_Query.php');
+require_once('./lib/BDT/Database/BDT_SQL_Procedure.php');
+require_once('./lib/BDT/Database/BDT_SQL_Mapper.php');
+
 /**
  * BDT_Database klasa odpowiedzialna za obsługę bazy danych
  *
@@ -28,76 +34,22 @@
  * @package    BDT
  * @charset    utf8
  **/
-final class BDT_Database {
+class BDT_Database {
 
-   private $_function;
-
-   private $_view;
-
-   private $_conn;
-
-   private $_model;
-
-   private $_table;
-
-   private static $_config = array( './config/database' => 'ini'  );
-
-   private function __construct() {
-      BDT_Loader::loadFile( array (
-         './lib/BDT/Database/BDT_SQL_Connect',
-         './lib/BDT/Database/BDT_SQL_Query',
-         './lib/BDT/Database/BDT_SQL_Table',
-         './lib/BDT/Database/BDT_SQL_Model',
-         './lib/BDT/Exception/BDT_Database_Exception'
-         )
-      );
-
-      $this->_conn = BDT_SQL_Connect::getInstance( self::$_config );
+   public function __construct() {
    }
 
-   public function getModel( $model ) {
+   public function getMapper( $mapper ) {
 
-      $this->_model = ucfirst( $model );
-      BDT_Loader::loadFile( array(
-         './data/models/Tables/SQL_' . $this->_model . '_Table',
-         './data/models/SQL_' . $this->_model
-         )
-      );
+      $mapper = ucfirst( $mapper );
+      require_once('./data/mappers/procedures/SQL_' . $mapper . '_Procedure.php');
+      require_once('./data/mappers/SQL_' . $mapper . '.php');
 
-      $PGFM_model = 'SQL_' . $this->_model;
+      $pgfm = 'SQL_' . $mapper;
 
-      if( !class_exists( $PGFM_model ) )
-         throw new BDT_Database_Exception( 'Nie ma takiej klasy' );
+      if( !class_exists( $pgfm ) )
+         throw new BDT_Database_Exception( sprintf( 'Nie ma takiej klasy %s', $pgfm ) );
 
-      $objModel = new $PGFM_model;
-
-      self::menageBackends( $this->_model, $objModel );
-
-      return self::menageBackends( $this->_model );
-   }
-
-   public static function initialize() {
-      static $selfObj;
-
-      if( !isset( $selfObj ) )
-         $selfObj = new BDT_Database;
-
-      return $selfObj;
-   }
-
-   private static function menageBackends( $name, $objBack = NULL ) {
-      static $backEnds;
-
-      if( !isset( $backEnds ) )
-         $backEnds = array();
-
-      if( !isset( $objBack ) ) {
-         if( isset( $backEnds[ $name ] ) )
-            return $backEnds[ $name ];
-         else
-            throw new BDT_Database_Exception( 'Błędny klucz' );
-      } else {
-         $backEnds[ $name ] = $objBack;
-      }
+      return new $pgfm;
    }
 }

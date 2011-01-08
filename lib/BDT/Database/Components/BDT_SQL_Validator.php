@@ -30,18 +30,15 @@
  **/
 class BDT_SQL_Validator {
 
-   private $_model;
-
    private $_request;
 
-   public function __construct( $model, $request ) {
-      $this->_model = $model;
+   public function __construct( BDT_Request $request ) {
       $this->_request = $request;
    }
 
-   public function setConstraint( $column, $validator, $options, $errorMessage ) {
-      $objConstraint = new BDT_Constraint( $validator, $options, $errorMessage );
-      $this->_request->addConstraint( $column, BDT_Request::VERB_METHOD_POST, $objConstraint );
+   public function setConstraint( $argument, $validator, $options, $errorMessage ) {
+      $constraint = new BDT_Constraint( $validator, $options, $errorMessage );
+      $this->_request->addConstraint( $argument, BDT_Request::VERB_METHOD_POST, $constraint );
    }
 
 }

@@ -28,9 +28,6 @@
  * @package    BDT
  * @charset    utf8
  **/
-
-BDT_Loader::loadFile( array( './lib/BDT/BDT_Collection' ) );
-
 class BDT_SQL_Procedure_Collection extends BDT_Collection {
    public function addItem( BDT_SQL_Procedure $obj, $key = NULL ) {
       parent::addItem( $obj, $key );

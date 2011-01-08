@@ -18,10 +18,8 @@
  *
  **/
 
-BDT_Loader::loadFile( array(
-   './lib/BDT/Template/BDT_View_Variable',
-   './lib/BDT/Collection/Components/BDT_View_Variable_Collection'
-) );
+require_once('./lib/BDT/Template/BDT_View_Variable.php');
+require_once('./lib/BDT/Collection/Components/BDT_View_Variable_Collection.php');
 
 /**
  * BDT_View klasa odpowiedzialna za warstwe prezentacji modułów
@@ -35,28 +33,12 @@ BDT_Loader::loadFile( array(
  **/
 class BDT_View {
 
-   /**
-    * Zawartość widoku
-    *
-    * @var      string
-    * @access   protected
-    */
-   protected $_content = null;
-
-   protected $_path = null;
-
-   protected $_tpl = null;
-
-   protected $_route = null;
-
-   protected $_module = null;
+   protected $_template = null;
 
    protected $_data = null;
 
-   public function __construct( $path, $tpl, $route ) {
-      $this->_path = $path;
-      $this->_tpl = $tpl;
-      $this->_route = $route;
+   public function __construct( $template ) {
+      $this->_template = $template;
       $this->_data = new BDT_View_Variable_Collection;
    }
 
@@ -64,20 +46,8 @@ class BDT_View {
       return $this->_path;
    }
 
-   public function setContent( $content ) {
-      $this->_content = $content;
-   }
-
-   public function getContent() {
-      return $this->_content;
-   }
-
-   public function setModule( $module ) {
-      $this->_module = $module;
-   }
-
-   public function getModule() {
-      return $this->_module;
+   public function display() {
+      $this->_template->display(array( 'view' => $this));
    }
 
    /**
@@ -99,6 +69,16 @@ class BDT_View {
     */
    public function __get( $name ) {
       return $this->_data->getItem( $name );
+   }
+
+    public function __isset( $name ) {
+        return $this->_data->exists($name);
+    }
+
+   public function __call($name, $arguments) {
+      if(substr($name, 0, 3) == 'get') {
+         return $this->__get(strtolower(substr($name,3)));
+      }
    }
 
 }

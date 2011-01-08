@@ -141,13 +141,9 @@ final class BDT_Debugger {
            echo "on line $errLine in file $errFile <br />\n";
            break;
       }
-
-      //$debugTpl = $this->_tpl->layout( 'templates/debug' ) ;
-      //$debugTpl->msg = $msg;
-
-      //$this->_tpl->addModule( array('view' => $debugTpl ) );
-
    }
+
+   public function setError($error){ var_dump($error); }
 
    /**
     * Metoda ustawia zmieną profiler.

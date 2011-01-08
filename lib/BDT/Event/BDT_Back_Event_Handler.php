@@ -18,6 +18,9 @@
  *
  **/
 
+require_once('./lib/BDT/BDT_Database.php');
+require_once('./app/lib/session/session.php');
+
 /**
  * BDT_Back_Handler klasa odpowiedzialna za obsługę akcji
  *
@@ -34,73 +37,42 @@ abstract class BDT_Back_Event_Handler implements BDT_Event_Handler {
 
    protected $_view;
 
-   protected $_debug;
-
-   protected $_space = 'content';
-
-   protected $_typeRespond = 'json';
-
    private $_tpl;
-
-   private $_viewCheckSum;
-
-   public function setDebug( BDT_Debugger $debug ) {
-      $this->_debug = $debug;
-      return $this;
-   }
-
-   public function setTpl( BDT_Template $tpl ) {
-      $this->_tpl = $tpl;
-      return $this;
-   }
 
    public function setRoute( BDT_Route $route ) {
       $this->_route = $route;
       return $this;
    }
 
+   public function preEvent() {} // pusta, najlepiej taką zostawić
+
    public function handledEvent() {
-      $action = $this->_route->action . 'Event';
+
+      $action = $this->_route->getAction() . 'Event';
 
       if ( method_exists( $this, $action ) ) {
-         if ( is_callable( array($this, $action), true ) )
-         {
-            try {
-
-               $this->_setView();
-
-               call_user_func( array( $this, $action ) );
-
-               $this->_tpl->renderItem( $this->_space, $this->_viewCheckSum, $this->_view );
-
-               $this->_tpl->appendView( $this->_view );
-
-            } catch ( Exception $error ) {
-               trigger_error( $error->getMessage() , E_USER_WARNING );
-            }
+         if ( is_callable( array($this, $action), true ) ) {
+            $this->_setView();
+            $this->preEvent();
+            call_user_func( array( $this, $action ) );
+            $this->postEvent();
          }
          else
             throw new Exception ( sprintf( dgettext( 'errors', 'Nie można wywołać akcji %s' ) , $action ) );
-
       } else
          throw new Exception ( sprintf( dgettext( 'errors', 'Brak obsługi akcji %s' ) , $action ) );
 
    }
 
+   public function postEvent() {} // pusta, najlepiej taką zostawić
+
    private function _setView() {
+      require_once('./lib/BDT/BDT_Template.php');
+
+      $this->_tpl = new BDT_Template( array('./', './app/' . $this->_route->getInterface() . '/templates') );
+      $this->_tpl->setView('./app/' . $this->_route->getInterface() . '/events/' . $this->_route->getController() . 'Event/templates/' . $this->_route->getAction() . 'Event.tpl');
       $this->_view = $this->_tpl->getView();
-
-      $this->_view->setModule( $this->_route->controller );
-
-      $this->_viewCheckSum = sha1( $this->_route->interface . '/' . $this->_route->controller . '/' . $this->_route->action );
    }
 
-   public function __destruct() {
-      if( $this->_route->action == 'index' ) {
-         $this->_tpl->getHTML();
-      } else {
-         $this->_tpl->getAJAX( $this->_typeRespond );
-      }
-   }
 
 }
