@@ -42,12 +42,8 @@ class BDT_View {
       $this->_data = new BDT_View_Variable_Collection;
    }
 
-   public function getPath() {
-      return $this->_path;
-   }
-
    public function display() {
-      $this->_template->display(array( 'view' => $this));
+      $this->_template->display( array( 'view' => $this ) );
    }
 
    /**
@@ -71,14 +67,8 @@ class BDT_View {
       return $this->_data->getItem( $name );
    }
 
-    public function __isset( $name ) {
-        return $this->_data->exists($name);
-    }
-
-   public function __call($name, $arguments) {
-      if(substr($name, 0, 3) == 'get') {
-         return $this->__get(strtolower(substr($name,3)));
-      }
+   public function __isset( $name ) {
+      return $this->_data->exists( $name );
    }
 
 }

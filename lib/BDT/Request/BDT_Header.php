@@ -12,4 +12,10 @@ class BDT_Header {
       header('Location: ' . $args[1]);
       exit(0);
    }
+
+   public static function eJson() {
+      header('Cache-Control: no-cache, must-revalidate');
+      header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
+      header('Content-type: application/json');
+   }
 }

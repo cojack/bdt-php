@@ -57,7 +57,7 @@ class BDT_Dispatcher {
    public function handleEvent() {
       require_once('./lib/BDT/Event/BDT_Event_Handler.php');
       require_once('./lib/BDT/Event/BDT_'.ucfirst(substr($this->_route->getInterface(), 0, -3)).'_Event_Handler.php');
-      require_once('./app/' . $this->_route->getInterface() . '/events/' . $this->_route->getController() . 'Event/event.php');
+      require_once('./app/' . $this->_route->getInterface() . '/events/' . $this->_route->getController() . 'Event/' . $this->_route->getController() .'Handler.php');
 
       $eventName = 'BDT_Handler_' . ucfirst( $this->_route->getController() );
 
