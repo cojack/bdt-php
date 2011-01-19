@@ -153,7 +153,6 @@ class BDT_Route {
          $this->_url .= mb_strtolower( $url, 'UTF-8' );
 
       $this->_url = strip_tags( $this->_url );
-
       return $this;
    }
 

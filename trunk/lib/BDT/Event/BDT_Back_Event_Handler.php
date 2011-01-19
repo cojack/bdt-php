@@ -33,10 +33,39 @@ require_once('./app/lib/session/session.php');
  **/
 abstract class BDT_Back_Event_Handler implements BDT_Event_Handler {
 
+   /**
+    * Obiekt routera
+    *
+    * @var BDT_Route
+    */
    protected $_route;
 
+   /**
+    * Obiekt requestu
+    *
+    * @var BDT_Request
+    */
+   protected $_request;
+
+   /**
+    * Obiekt widoku
+    * 
+    * @var BDT_View
+    */
    protected $_view;
 
+   /**
+    * Obiekt sessji
+    *
+    * @var Session
+    */
+   protected $_session;
+
+   /**
+    * Obiekt szablonu
+    * 
+    * @var BDT_Template
+    */
    private $_tpl;
 
    public function setRoute( BDT_Route $route ) {
@@ -44,7 +73,18 @@ abstract class BDT_Back_Event_Handler implements BDT_Event_Handler {
       return $this;
    }
 
-   public function preEvent() {} // pusta, najlepiej taką zostawić
+   /**
+    * Ustawiamy sessje oraz obiekt requestu
+    *
+    * @param void
+    * @return void
+    */
+   public function preEvent() {
+      $this->_session = new Session;
+      $this->_session->impress();
+
+      $this->_request = $this->_route->getRequest();
+   } // pusta, najlepiej taką zostawić
 
    public function handledEvent() {
 

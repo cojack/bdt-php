@@ -70,7 +70,7 @@ dzieją sie wszystkie rzeczy. Jest tworzony obiekt Route oraz Dispatcher, z rout
 przekazywane do serwera, get, post, request, cookie sruki. Dispatcher po akcji z Route->request wie jaki jest interfejs
 więc wczytuje odpowiedni event controller, czy to frontend czy backend. Oraz wywołuje magiczną metodę handleEvent,
 nie robi nic innego jak tworzy obiekt naszego kontrollera i wywołuje w nim akcję w stylu: /default/index, zostanie wywołany
-plik z : /app/frontend/events/defaultEvent/event.php oraz akcja z tego kontrollera który powinień nosić nazwę BDT_Handler_Default
+plik z : /app/frontend/events/defaultEvent/defaultHandler.php oraz akcja z tego kontrollera który powinień nosić nazwę BDT_Handler_Default
 która się bedzie zwać indexEvent, co rozumiemy że indexEvent jest oczywiście metodą tego obiektu.
 
 Proste nie? Mówiłem że tak jak w symfony czy w zendzie, tylko lepiej xD
@@ -99,7 +99,24 @@ nie będzie używał :)
 Command-line interface - nie ma, jak napiszesz to będzie :D
 
 5) Instalacja
-No to konsola, sql i pizda na tłoki.
+Sprawa ma się tak, że o spójność danych musimy się martwić sami, nie ma bata by to jakoś ogarnąć, tzn jeżeli tworzymy powiązania pomiędzy tabelami
+i np pierw tworzymy tabele z dowiązaniem do tabeli której jeszcze nie ma, to takie rzeczy należałoby zrobić w osobnym pliku za pomocą ALTER TABLE
+nie da się nic innego wymyślić. Bo nie ma jak to działać, spójność danych w bazie musi zostać zachowana i silnik postgresql nam na takie rzeczy nie pozwoli,
+chyba że byśmy puścili to wszystko w jednej transkacji, ale nie wiem czy to przejdzie mimo wszystko.
+
+5.a) Instalacja SQL
+Tutaj trochę usprawnię działanie i motyw jest taki że odpalamy z konsoli plik install, pierwej trzeba mu nadać uprawnienia wykonywania no i zmienić
+sposób łączenia, ja u siebie na localu mam po ident, także jadę na superuserze i wali mnie to. Jest masę sposób na połączenie się z konsolą psql.
+
+Co ooooooooooo ten skrypt robi?
+Jeździ po katalogach w data/sql, pierw ciśnie po delete -> create -> insert ( init -> demo )
+Z tym że demo wrzuci jak mu powiemy by to zrobił, inaczej tego nie zrobi.
+
+5.b) Urzytkownicy sql i uprawnienia
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA "user" GRANT SELECT ON TABLES TO noob;
+GRANT USAGE ON SCHEMA "user" TO noob;
+
 
 6) Podziękowania
 Nie ma za co ;) no już nie musisz no, przestań się podlizywać i tak wiem że jestem zajebisty.
