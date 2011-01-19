@@ -11,25 +11,42 @@ Ext.onReady(function(){
             region: 'north',
             xtype: 'panel',
             tbar: [{
-                  xtype:'splitbutton',
-                  text: 'Menu Button',
-                  iconCls: 'add16',
-                  menu: [{text: 'Menu Button 1'}]
+               xtype:'splitbutton',
+               text: 'Menu Button',
+               iconCls: 'add16',
+               menu: [{text: 'Menu Button 1'}]
             },'-',{
-                  xtype:'splitbutton',
-                  text: 'Cut',
-                  iconCls: 'add16',
-                  menu: [{text: 'Cut Menu Item'}]
+               xtype:'splitbutton',
+               id: 'user-id-tbar',
+               text: 'Użytkownicy',
+               iconCls: 'users',
+               module: 'user',
+               handler: function(btn, e) { core.loadModule(btn); },
+               menu: [{
+                  text: 'Dodaj nowego',
+                  iconCls: 'user-add',
+                  handler: function(btn, e) { 
+                     obj = Ext.getCmp('user-id-tbar');
+                     core.loadModule(obj);
+                     userModule.registerPanel();
+                  },
+               },{
+                  text: 'Wyszukaj'
+               }]
             },{
-                  text: 'Copy',
-                  iconCls: 'add16'
-            },{
-                  text: 'Paste',
-                  iconCls: 'add16',
-                  menu: [{text: 'Paste Menu Item'}]
-            },'-',{
-                  text: 'Format',
-                  iconCls: 'add16'
+               xtype: 'splitbutton',
+               id: 'group-id-tbar',
+               text: 'Grupy',
+               iconCls: 'groups',
+               module: 'group',
+               handler: function(btn, e) { core.loadModule(btn); },
+               menu: [{
+                  text: 'Dodaj grupe',
+                  iconCls: 'group-add',
+               }]
+            },'->',{
+               text: 'Zalogowany',
+               iconCls: 'add16'
             }]
       },{
             region: 'west',
@@ -46,13 +63,11 @@ Ext.onReady(function(){
                animate: true
             },
             items: [{
-               contentEl: 'west',
                title: 'Navigation',
                border: false,
                iconCls: 'nav' // see the HEAD section for style used
             }, {
                title: 'Settings',
-               html: '<p>Some settings in here.</p>',
                border: false,
                iconCls: 'settings'
             }]
@@ -62,14 +77,9 @@ Ext.onReady(function(){
       // as a Container
       new Ext.TabPanel({
             region: 'center', // a center region is ALWAYS required for border layout
+            id: 'center-panel',
             deferredRender: false,
       })]
    });
-   // get a reference to the HTML element with id "hideit" and add a click listener to it 
-   Ext.get("hideit").on('click', function(){
-      // get a reference to the Panel that was created with id = 'west-panel' 
-      var w = Ext.getCmp('west-panel');
-      // expand or collapse that Panel based on its collapsed property state
-      w.collapsed ? w.expand() : w.collapse();
-   });
+
 });
