@@ -18,8 +18,11 @@
  *
  **/
 
+require_once('./lib/BDT/BDT_Database.php');
+require_once('./app/lib/session/session.php');
+
 /**
- * BDT_Front_Event_Handler klasa odpowiedzialna za obsługę akcji
+ * BDT_Front_Handler klasa odpowiedzialna za obsługę akcji
  *
  * @author     Przemysław Czekaj <przemyslaw.czekaj@aichra.pl>
  * @link       http://aichra.pl
@@ -30,10 +33,39 @@
  **/
 abstract class BDT_Front_Event_Handler implements BDT_Event_Handler {
 
+   /**
+    * Obiekt routera
+    *
+    * @var BDT_Route
+    */
    protected $_route;
 
+   /**
+    * Obiekt requestu
+    *
+    * @var BDT_Request
+    */
+   protected $_request;
+
+   /**
+    * Obiekt widoku
+    * 
+    * @var BDT_View
+    */
    protected $_view;
 
+   /**
+    * Obiekt sessji
+    *
+    * @var Session
+    */
+   protected $_session;
+
+   /**
+    * Obiekt szablonu
+    * 
+    * @var BDT_Template
+    */
    private $_tpl;
 
    public function setRoute( BDT_Route $route ) {
@@ -41,9 +73,23 @@ abstract class BDT_Front_Event_Handler implements BDT_Event_Handler {
       return $this;
    }
 
-   public function preEvent() {} // pusta, najlepiej taką zostawić
+   /**
+    * Ustawiamy sessje oraz obiekt requestu
+    *
+    * @param void
+    * @return void
+    */
+   public function preEvent() {
+      $this->_session = new Session;
+      $this->_session->impress();
+
+      $this->_request = $this->_route->getRequest();
+      $this->_view->addViewElement('route', $this->_route->getUtils());
+      $this->_view->addViewElement('debug', BDT_Debugger::getInstance());
+   }
 
    public function handledEvent() {
+
       $action = $this->_route->getAction() . 'Event';
 
       if ( method_exists( $this, $action ) ) {
@@ -57,16 +103,14 @@ abstract class BDT_Front_Event_Handler implements BDT_Event_Handler {
             throw new Exception ( sprintf( dgettext( 'errors', 'Nie można wywołać akcji %s' ) , $action ) );
       } else
          throw new Exception ( sprintf( dgettext( 'errors', 'Brak obsługi akcji %s' ) , $action ) );
+
    }
 
    public function postEvent() {} // pusta, najlepiej taką zostawić
 
    private function _setView() {
-      require_once('./lib/BDT/BDT_Template.php');
-
       $this->_tpl = new BDT_Template( array('./', './app/' . $this->_route->getInterface() . '/templates') );
-      $this->_tpl->setView('./app/' . $this->_route->getInterface() . '/events/' . $this->_route->getController() . 'Event/templates/' . $this->_route->getAction() . 'Event.tpl');
+      $this->_tpl->setPath('./app/' . $this->_route->getInterface() . '/events/' . $this->_route->getController() . 'Event/templates/' . $this->_route->getAction() . 'Event.tpl');
       $this->_view = $this->_tpl->getView();
    }
-
 }

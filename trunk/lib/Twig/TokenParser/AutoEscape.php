@@ -28,7 +28,7 @@ class Twig_TokenParser_AutoEscape extends Twig_TokenParser
 
         if ($this->parser->getStream()->test(Twig_Token::NAME_TYPE)) {
             if (false === $value) {
-                throw new Twig_Error_Syntax(sprintf('Unexpected escaping strategy as you set autoescaping to false.', $lineno), -1);
+                throw new Twig_Error_Syntax('Unexpected escaping strategy as you set autoescaping to false.', $lineno);
             }
 
             $value = $this->parser->getStream()->next()->getValue();
@@ -41,7 +41,7 @@ class Twig_TokenParser_AutoEscape extends Twig_TokenParser
         return new Twig_Node_AutoEscape($value, $body, $lineno, $this->getTag());
     }
 
-    public function decideBlockEnd($token)
+    public function decideBlockEnd(Twig_Token $token)
     {
         return $token->test('endautoescape');
     }

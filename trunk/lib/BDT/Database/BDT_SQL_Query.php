@@ -30,29 +30,100 @@
  **/
 class BDT_SQL_Query  {
 
+   /**
+    *
+    *
+    */
    protected $_conn;
 
+   /**
+    *
+    *
+    */
    protected $_mapper;
 
+   /**
+    *
+    *
+    */
+   private $_cacheKey = null;
+
+   /**
+    *
+    *
+    */
+   private $_cacheTime = 0;
+
+   /**
+    *
+    *
+    */
    public function __construct( $mapper ) {
       $this->_mapper = $mapper;
 
       $this->_conn = BDT_SQL_Connect::connect('read');
    }
 
-   public function prepare( $sql ) {
-      return $this->_conn->prepare( $sql );
+   /**
+    *
+    *
+    */
+   public function prepare( $sql, $cache = FALSE ) {
+      $stm = $this->_conn->prepare( $sql );
+
+      if($cache) {
+         $this->_cacheQuery($stm);
+      }
+
+      return $stm;
    }
 
-   public function callProcedure( BDT_SQL_Procedure $procedure ) {
-      $driver = $this->_conn->getAttribute(PDO::ATTR_DRIVER_NAME);
+   /**
+    *
+    *
+    */
+   public function setCacheKey( $key = null ) {
+      $this->_cacheKey = $key;
+   }
 
-      $engine = 'BDT_SQL_' . strtoupper( $driver );
+   /**
+    *
+    *
+    */
+   public function setCacheTime( $time = 0 ) {
+      $this->_cacheTime = $time;
+   }
+
+   /**
+    *
+    * @param BDT_SQL_Procedure $procedure
+    * @return bool Wynik procedury
+    */
+   public function callProcedure( BDT_SQL_Procedure $procedure ) {
+      $engine = 'BDT_SQL_' . strtoupper( $this->_conn->getAttribute(PDO::ATTR_DRIVER_NAME) );
 
       require_once( './lib/BDT/Database/Components/BDT_SQL_PL.php' );
       require_once( './lib/BDT/Database/Components/Procedures/'. $engine .'.php' );
 
       $plsql = new $engine( $procedure );
       return $plsql->invoke();
+   }
+
+   /**
+    *
+    * 
+    * @param PDOStatement $stm
+    * @return void
+    */
+   private function _cacheQuery( PDOStatement $stm ) {
+      if(!$this->_cacheKey) {
+         throw new Exception('Brak klucza do cachowanie zapytania');
+      }
+
+      $m = new Memcached();
+      $m->addServer('localhost', 11211);
+      $m->setOption(Memcached::OPT_PREFIX_KEY, get_class($this->_mapper).'_');
+
+      $stm->setCache($m, $this->_cacheKey, $this->_cacheTime);
    }
 }

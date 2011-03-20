@@ -34,13 +34,15 @@ class BDT_SQL_PDO_Statement extends PDOStatement {
    protected $connection;
    protected $bound_params = array();
 
-   protected function __construct(PDO $connection)
-   {
+   private $cache = null;
+   private $cacheKey = null;
+   private $cacheTime = null;
+
+   protected function __construct(PDO $connection) {
       $this->connection = $connection;
    }
 
-   public function bindParam($paramno, &$param, $type = PDO::PARAM_STR, $maxlen = null, $driverdata = null)
-   {
+   public function bindParam($paramno, &$param, $type = PDO::PARAM_STR, $maxlen = null, $driverdata = null) {
       $this->bound_params[$paramno] = array(
          'value' => &$param,
          'type' => $type,
@@ -51,8 +53,7 @@ class BDT_SQL_PDO_Statement extends PDOStatement {
       $result = parent::bindParam($paramno, $param, $type, $maxlen, $driverdata);
    }
 
-   public function bindValue($parameter, $value, $data_type = PDO::PARAM_STR)
-   {
+   public function bindValue($parameter, $value, $data_type = PDO::PARAM_STR) {
       $this->bound_params[$parameter] = array(
          'value' => $value,
          'type' => $data_type,
@@ -61,8 +62,13 @@ class BDT_SQL_PDO_Statement extends PDOStatement {
       parent::bindValue($parameter, $value, $data_type);
    }
 
-   public function getSQL($values = array())
-   {
+   public function setCache( $cache, $cacheKey, $cacheTime ) {
+      $this->cache = $cache;
+      $this->cacheKey = $cacheKey;
+      $this->cacheTime = $cacheTime;
+   }
+
+   public function getSQL($values = array()) {
       $sql = $this->queryString;
 
       if (sizeof($values) > 0) {
@@ -90,8 +96,22 @@ class BDT_SQL_PDO_Statement extends PDOStatement {
       return $sql;
    }
 
-   static protected function cast($value, $type)
-   {
+   public function execute(array $input_parameters = null) {
+      $stop = 0;
+      if( !$this->cache || !($rs = unserialize($this->cache->get($this->cacheKey))) ) {
+         $start = microtime(true);
+         $rs = parent::execute($input_parameters);
+         $stop = microtime(true) - $start;
+         if($this->cache)  {
+            $rs = $this->fetchAll();
+            $this->cache->set($this->cacheKey, serialize($rs), $this->cacheTime);
+         }
+      }
+      BDT_Debugger::setSql( $this->getSQL(), $stop );
+      return $rs;
+   }
+
+   static protected function cast($value, $type) {
       switch ($type) {
          case PDO::PARAM_BOOL:
             return (bool) $value;
@@ -107,8 +127,7 @@ class BDT_SQL_PDO_Statement extends PDOStatement {
       }
    }
 
-   static protected function truncate($value, $length)
-   {
+   static protected function truncate($value, $length) {
       return substr($value, 0, $length);
    }
 }

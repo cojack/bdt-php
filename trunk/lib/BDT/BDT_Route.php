@@ -81,6 +81,8 @@ class BDT_Route {
 
       self::$_request = new BDT_Request;
       self::$_request->setRedirectOnConstraintFailure( TRUE );
+
+      BDT_Debugger::setRequest( self::$_request );
    }
 
    /**
@@ -133,6 +135,8 @@ class BDT_Route {
 
       $routing = NULL;
       $controllers = NULL;
+
+      BDT_Debugger::setRoute( $this->_route );
 
       return $this;
    }

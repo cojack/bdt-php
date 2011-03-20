@@ -37,13 +37,20 @@ class BDT_View {
 
    protected $_data = null;
 
+   protected $_elemnts = array();
+
    public function __construct( $template ) {
       $this->_template = $template;
       $this->_data = new BDT_View_Variable_Collection;
+
+      $this->_elemnts = array(
+         'view' => $this
+      );
+
    }
 
    public function display() {
-      $this->_template->display( array( 'view' => $this ) );
+      $this->_template->display( $this->_elemnts );
    }
 
    /**
@@ -55,6 +62,10 @@ class BDT_View {
     */
    public function __set( $name, $value ) {
       $this->_data->addItem( new BDT_View_Variable( $name, $value ), $name );
+   }
+
+   public function addViewElement( $elementName, $element ) {
+      $this->_elemnts[$elementName] = $element;
    }
 
    /**

@@ -46,15 +46,16 @@ class BDT_Template {
     * @param  void
     * @return void
     */
-   public function __construct($paths = array()) {
-      $this->_twig = new Twig_Environment(new Twig_Loader_Filesystem( $paths, array(
-         'cache' => './tmp/cache'
-      )));
+   public function __construct( $paths = array() ) {
+      $this->_twig = new Twig_Environment(new Twig_Loader_Filesystem( $paths ), array(
+         'cache' => './tmp/cache',
+         'auto_reload' => BDT_Debugger::getDebug(),
+      ));
 
       //$this->_tpl->addExtension(new GettextTwig());
    }
 
-   public function setView($path) {
+   public function setPath( $path ) {
       $this->_path = $path;
    }
 
@@ -67,53 +68,4 @@ class BDT_Template {
    public function getView() {
       return new BDT_View( $this->_twig->loadTemplate( $this->_path ) );
    }
-
-   /*
-   private function _slotHelper( $class, $action = 'render' ) {
-      require_once('./app/' . $this->_route->getInterface() . '/slots/' . $class);
-
-      if( class_exists( $class ) ) {
-         $slot = new $class( './app/' . $this->_route->getInterface() . '/templates/' . $class . '.phtml', clone( $this ) );
-
-         $space = 'slot';
-         $checkSum = sha1( $this->_route->getInterface() . '/' . $class );
-
-         if( !$this->isCachedItem( $space, $checkSum, $slot ) ) {
-
-            call_user_func( array( $slot, $action ) );
-
-            $this->renderItem( $space, $checkSum, $slot );
-         }
-
-         return $slot->getContent();
-
-      }
-   }
-
-   public function getHelper( $helperName, $slotProperties = array() ) {
-      if( $helperName == 'slot' ) {
-         return $this->_slotHelper( $slotProperties[ 0 ], $slotProperties[ 1 ] );
-      }
-
-      $helper = 'BDT_Helper_' . ucfirst( $helperName );
-
-      BDT_Loader::loadFile( array( './lib/BDT/Template/Helpers/' . $helper  ) );
-
-      if( !class_exists( $helper ) ) {
-         throw new BDT_Template_Exception( sprintf( dgettext( 'errors', 'Brak helpera o nazwie %s' ) , htmlspecialchars( $helper, ENT_QUOTES, 'UTF-8' ) ) );
-      }
-
-      $objHelper = new $helper;
-
-      if ( $objHelper instanceof BDT_Helper_Css ) {
-         $this->_css->addItem( $objHelper );
-      } else if ( $objHelper instanceof BDT_Helper_Js ) {
-         $this->_js->addItem( $objHelper );
-      } else if ( $objHelper instanceof BDT_Helper_Url ) {
-         $objHelper->setUtils( $this->_route->getUtils() );
-      }
-
-      return $objHelper;
-   }
-   */
 }

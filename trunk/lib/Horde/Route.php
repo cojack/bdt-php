@@ -376,7 +376,7 @@ class Horde_Routes_Route
 
         foreach ($defaultKeys as $key) {
             if ($kargs[$key] !== null) {
-                $defaults[$key] = (string)$kargs[$key];
+                $defaults[$key] = $kargs[$key];
             } else {
                 $defaults[$key] = null;
             }
