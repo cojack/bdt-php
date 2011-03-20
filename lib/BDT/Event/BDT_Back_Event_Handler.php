@@ -84,7 +84,7 @@ abstract class BDT_Back_Event_Handler implements BDT_Event_Handler {
       $this->_session->impress();
 
       $this->_request = $this->_route->getRequest();
-   } // pusta, najlepiej taką zostawić
+   }
 
    public function handledEvent() {
 
@@ -107,12 +107,8 @@ abstract class BDT_Back_Event_Handler implements BDT_Event_Handler {
    public function postEvent() {} // pusta, najlepiej taką zostawić
 
    private function _setView() {
-      require_once('./lib/BDT/BDT_Template.php');
-
       $this->_tpl = new BDT_Template( array('./', './app/' . $this->_route->getInterface() . '/templates') );
-      $this->_tpl->setView('./app/' . $this->_route->getInterface() . '/events/' . $this->_route->getController() . 'Event/templates/' . $this->_route->getAction() . 'Event.tpl');
+      $this->_tpl->setPath('./app/' . $this->_route->getInterface() . '/events/' . $this->_route->getController() . 'Event/templates/' . $this->_route->getAction() . 'Event.tpl');
       $this->_view = $this->_tpl->getView();
    }
-
-
 }

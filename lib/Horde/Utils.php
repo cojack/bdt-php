@@ -170,7 +170,6 @@ class Horde_Routes_Utils
                 foreach ($kargs as $key => $value) {
                     $newargs[$key] = $value;
                 }
-
                 // If this route has a filter, apply it
                 if (!empty($route->filter)) {
                     $newargs = call_user_func($route->filter, $newargs);

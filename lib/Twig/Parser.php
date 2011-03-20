@@ -29,6 +29,7 @@ class Twig_Parser implements Twig_ParserInterface
     protected $env;
     protected $reservedMacroNames;
     protected $importedFunctions;
+    protected $tmpVarCount;
 
     /**
      * Constructor.
@@ -40,6 +41,11 @@ class Twig_Parser implements Twig_ParserInterface
         $this->env = $env;
     }
 
+    public function getVarName()
+    {
+        return sprintf('__internal_%s_%d', substr($this->env->getTemplateClass($this->stream->getFilename()), strlen($this->env->getTemplateClassPrefix())), ++$this->tmpVarCount);
+    }
+
     /**
      * Converts a token stream to a node tree.
      *
@@ -49,6 +55,8 @@ class Twig_Parser implements Twig_ParserInterface
      */
     public function parse(Twig_TokenStream $stream)
     {
+        $this->tmpVarCount = 0;
+
         // tag handlers
         $this->handlers = $this->env->getTokenParsers();
         $this->handlers->setParser($this);
@@ -74,8 +82,8 @@ class Twig_Parser implements Twig_ParserInterface
                 $this->checkBodyNodes($body);
             }
         } catch (Twig_Error_Syntax $e) {
-            if (null === $e->getFilename()) {
-                $e->setFilename($this->stream->getFilename());
+            if (null === $e->getTemplateFile()) {
+                $e->setTemplateFile($this->stream->getFilename());
             }
 
             throw $e;
@@ -237,6 +245,11 @@ class Twig_Parser implements Twig_ParserInterface
         array_shift($this->importedFunctions);
     }
 
+    /**
+     * Gets the expression parser.
+     *
+     * @return Twig_ExpressionParser The expression parser
+     */
     public function getExpressionParser()
     {
         return $this->expressionParser;
@@ -252,11 +265,21 @@ class Twig_Parser implements Twig_ParserInterface
         $this->parent = $parent;
     }
 
+    /**
+     * Gets the token stream.
+     *
+     * @return Twig_TokenStream The token stream
+     */
     public function getStream()
     {
         return $this->stream;
     }
 
+    /**
+     * Gets the current token.
+     *
+     * @return Twig_Token The current token
+     */
     public function getCurrentToken()
     {
         return $this->stream->getCurrent();

@@ -34,80 +34,74 @@ final class BDT_Debugger {
     * Informacja o tym czy debugger ma być używany.
     *
     * @var        boolean
-    * @access     public
-    * @staticvar
     */
-   public static $debug = FALSE;
+   private static $_debug = FALSE;
 
    /**
-    * Zmienna profiler do zarządzania zapytaniami sql
+    * Instancja własnej klasy
     *
-    * @var        variable
-    * @access     private
-    * @staticvar
+    * @var BDT_Debugger
     */
-   private static $profiler;
-
    private static $selfObj;
-
-   private $timer = array();
 
    /**
     * Tablica z wynikami debuggera
     *
     * @var        array
-    * @access     private
-    * @staticvar
     */
-   private static $debugArray = array();
-
-   private $_tpl;
+   private static $_debugArray = array(
+      'sql' => array(
+         0 => array (
+            'Query',
+            'Time'
+         ),
+      ),
+      'error' => array(
+         0 => array(
+            'Message'
+         ),
+      ),
+      'route' => array(),
+      'request' => array(
+         0 => array(
+            'Post',
+            'Get',
+            'Cookie',
+            'Server'
+         )
+      )
+   );
 
    /**
     * Konstruktor klasy, prywatny, nie możemy utworzyć instancji tej klasy.
     *
-    * @method  __construct
-    * @access  private
     * @param   void
     * @return  void
     */
    private function __construct() {
-      if( self::$debug ) {
+      if( self::$_debug ) {
          ini_set('display_errors', 1 );
+         require_once('./lib/FirePHP/FirePHP.class.php'); // (object oriented API)
+         $this->_firePHP = new FirePHP;
+         $this->_firePHP->setEnabled(true);
          set_error_handler( array( $this, 'errorHandler' ), E_ALL );
       } else {
          ini_set('display_errors', 0 );
       }
    }
 
+   /**
+    * Inicjalizacja klasy
+    *
+    * @param boolean $debug czy jest włączona opcja debugowania
+    */
    public static function initialize( $debug = FALSE ) {
-      self::$debug = $debug;
+      self::$_debug = $debug;
       return isset(self::$selfObj) ? self::$selfObj : self::$selfObj = new BDT_Debugger;
    }
 
-   public function start() {
-      $time = microtime( true );
-      $this->_tmpTimer = array(
-         'class' => $class,
-         'method' => $method,
-         'timeStart' => $time
-      );
-   }
-
-   public function stop() {
-      array_merge( $this->_tmpTimer, array( 'timeStop' => microtime( true ) ) );
-
-      $this->timer[] = $this->_tmpTimer;
-
-      $this->_tmpTimer = array();
-   }
-
-   private function _backtrace() {
-      $this->_backtrace = debug_backtrace();
-   }
-
-   public function setTpl( $tpl ) {
-      $this->_tpl = $tpl;
+   public static function getInstance() {
+      return self::$selfObj;
    }
 
    /**
@@ -122,113 +116,92 @@ final class BDT_Debugger {
    public function errorHandler( $errLvl, $errMsg, $errFile, $errLine ) {
       switch ( $errLvl ) {
          case E_USER_ERROR:
-           echo "<b>My ERROR</b> [$errLvl] $errMsg<br />\n";
-           echo "  Fatal error on line $errLine in file $errFile";
-           echo ", PHP " . PHP_VERSION . " (" . PHP_OS . ")<br />\n";
-           echo "Aborting...<br />\n";
-           break;
+            $message = "My ERROR [$errLvl] $errMsg\n";
+            $message .= "  Fatal error on line $errLine in file $errFile";
+            $message .= ", PHP " . PHP_VERSION . " (" . PHP_OS . ")\n";
+            $message .= "Aborting...\n";
+            break;
 
          case E_USER_WARNING:
-           echo "<b>My WARNING</b> [$errLvl] $errMsg<br />\n";
-           break;
+            $message = "My WARNING [$errLvl] $errMsg\n";
+            break;
 
          case E_USER_NOTICE:
-           echo "<b>My NOTICE</b> [$errLvl] $errMsg<br />\n";
-           break;
+            $message = "My NOTICE [$errLvl] $errMsg\n";
+            break;
 
          default:
-           echo "Unknown error type: [$errLvl] $errMsg<br />\n";
-           echo "on line $errLine in file $errFile <br />\n";
-           break;
+            $message = "Unknown error type: [$errLvl] $errMsg\n";
+            $message .= "on line $errLine in file $errFile\n";
+            break;
       }
+
+      self::setError( new Exception( $message ) );
    }
 
-   public function setError($error){ var_dump($error); }
-
-   /**
-    * Metoda ustawia zmieną profiler.
-    *
-    * @method  setProfiler
-    * @access  private
-    * @static
-    * @param   string      $profiler      Zmienna do debugowania zapytań sql
-    * @return  void
-    */
-   public function setProfiler( $profiler ) {
-      self::$profiler = $profiler;
+   public static function getDebug() {
+      return self::$_debug;
    }
 
+   public function out( $type, $value = null ) {
+      call_user_func_array( array($this->_firePHP, $type), array( $value ) );
+   }
 
-
-   /**
-    * Metoda do przechowywania błędów z Loggera
-    *
-    * @method  error
-    * @access  public
-    * @static
-    * @param   string   $errorMsg      Treść wiadomości o błędzie z loggera
-    * @param   integer  $errorLvl      Wartość wagi błędu w postaci integer
-    * @param   string   $errorModule   String z nazwą modułu, w której wystąpił błąd
-    * @return  void
-    */
-   public function error( $error = array() ) {
-      self::$debugArray['errors'][] = array(
-         'desc' => $error['smessage'],
-         'ordinary' => $error['sloglevel'],
-         'module' => $error['smodule']
+   public static function setRoute( array $route ) {
+      self::$_debugArray['route'] = array(
+         array_keys($route),
+         array_values($route)
       );
    }
 
-   /**
-    * TODO wszystko ;)
-    */
-   public function route() {
-      self::$debugArray['route'][] = array ();
-   }
-
-   /**
-    * Metoda do pobierania informacji z OPT nt parsowania szablonu
-    *
-    * @method  template
-    * @access  public
-    * @static
-    * @param   void
-    * @return  void
-    */
-   public function template() {
-      $tpl = Opl_Debug_Console::getInfo();
-      self::$debugArray['template'] = $tpl['opt_views']['values'];
+   public static function setRequest( BDT_Request $request ) {
+      self::$_debugArray['request'][] = array(
+         'post' => $request->getPostVariables(),
+         'get' => $request->getGetVariables(),
+         'cookies' => $request->getCookies(),
+         'server' => $_SERVER,
+      );
    }
 
    /**
     * Metoda do zapisywania do tablicy debugera informacji o zapytaniach sql i czasie ich wykonania
     *
-    * @method  sql
-    * @access  public
-    * @static
     * @param   void
     * @return  void
     */
-   private function sql() {
-      $time = 0; // czas wykonania wszystkich zapytań
-      $n = 1; // ilość wszystkich zapytań
+   public function setSql( $query, $time ) {
+      static $timeTotal = 0; // czas wykonania wszystkich zapytań
+      static $n = 1; // ilość wszystkich zapytań
 
-      foreach (self::$profiler as $event) {
-         self::$debugArray['sql']['queries'][] = array(
-            'time' => $event->getElapsedSecs(),
-            'query' => $event->getQuery(),
-            'params' => $event->getParams()
-         );
-         $time += $event->getElapsedSecs();
-         $n++;
-      }
+      self::$_debugArray['sql'][$n] = array(
+         'query' => $query,
+         'time' => $time
+      );
 
-      if( !empty( self::$debugArray['sql']['queries'] ) ) {
-         self::$debugArray['sql']['total'] = array(
-            'totalTime' => $time,
-            'queryCount' => $n
-         );
-      }
+      $timeTotal += $time;
+      $n += 1;
+   }
+
+   public function setError( Exception $error ) {
+      self::$_debugArray['error'][] = array(
+         'message' => $error->getMessage(),
+      );
+   }
+
+   private function _getSql() {
+      $this->_firePHP->table( 'SQL', self::$_debugArray['sql'] );
+   }
+
+   private function _getError() {
+      $this->_firePHP->table( 'Errors', self::$_debugArray['error'] );
+   }
+
+   private function _getRoute() {
+      $this->_firePHP->table( 'Route', self::$_debugArray['route'] );
+   }
+
+   private function _getRequest() {
+      $this->_firePHP->table( 'Request', self::$_debugArray['request'] );
    }
 
    /**
@@ -239,17 +212,17 @@ final class BDT_Debugger {
     * - informacje z router ( TODO )
     * - parsowania teplatki
     *
-    * @method  getInfo
-    * @access  public
-    * @static
     * @param   void
     * @return  array    Tablica z informacjami
     */
-   public static function getInfo(){
-      if( self::$debug ) {
-         self::sql(); // logi z sql'a
-         self::template(); // logi z templatki
-         return self::$debugArray;
+   public function getInfo(){
+      if( self::$_debug ) {
+         $this->_getSql(); // logi z sql'a
+         $this->_getError();
+         $this->_getRoute();
+         $this->_getRequest();
+         //self::template(); // logi z templatki
+         //return self::$_debugArray;
       }
    }
 }

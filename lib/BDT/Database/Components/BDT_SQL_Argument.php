@@ -19,7 +19,7 @@
  **/
 
 /**
- * BDT_SQL_Column klasa implementuje kolumnę w bazie danych
+ * BDT_SQL_Argument klasa implementuje argument przesyłany do funkcji
  *
  * @author     Przemysław Czekaj <przemyslaw.czekaj@aichra.pl>
  * @link       http://aichra.pl
@@ -29,45 +29,133 @@
  * @charset    utf8
  **/
 class BDT_SQL_Argument {
+
+   /**
+    * Nazwa argumentu
+    *
+    * @var string
+    */
    private $_name;
 
+   /**
+    * Typ argumentu
+    *
+    * @var string
+    */
    private $_type;
 
+   /**
+    * Typ PDO::PARAM_*
+    *
+    * @var integer
+    */
+   private $_cast;
+
+   /**
+    * Komunikat błedu
+    *
+    * @var string
+    */
    private $_error = NULL;
 
+   /**
+    * Wartość argumentu
+    * 
+    * @var mixed
+    */
    private $_value = NULL;
 
+   /**
+    * Konstruktor klasy
+    * Inicjalizuje własności klasy
+    *
+    * @param $name string Nazwa argumentu
+    * @param $type string Typ argumentu
+    * @param $cast integer Typ PDO::PARAM_*
+    */
    public function __construct( $name, $type, $cast ) {
       $this->_name = $name;
       $this->_type = $type;
       $this->_cast = $cast;
    }
 
+   /**
+    * Funkcja zwraca nazwę argumentu procedury
+    *
+    * @param void
+    * @return string
+    */
    public function getName() {
       return $this->_name;
    }
 
+   /**
+    * Funkcja zwraca typ PL/SQL procedury np: INTEGER, VARCHAR[] itp
+    *
+    * @param void
+    * @return string
+    */
    public function getType() {
       return $this->_type;
    }
 
+   /**
+    * Funkcja zwraca typ PDO::PARAM_*
+    *
+    * @param void
+    * @return string
+    */
    public function getCast() {
       return $this->_cast;
    }
 
+   /**
+    * Metoda do wyciągania w szablonie i nie tylko błedu jeżeli walidacja tego pola
+    * się nie powiodła
+    *
+    * @param void
+    * @return string
+    */
    public function getError() {
       return $this->_error;
    }
 
+   /**
+    * Metoda do ustawiania komunikatu błedu przy błędenj validacji
+    *
+    * @param string $errorMessage Komunikat błedu
+    * @return void
+    */
    public function setError( $errorMessage ) {
       $this->_error = $errorMessage;
    }
 
+   /**
+    * Metoda do ustawiania wartości argumentu
+    *
+    * @param mixed $value Wartość
+    * @return void
+    */
    public function setValue( $value ) {
       $this->_value = $value;
    }
 
-   public function getValue() {
+   /**
+    * Metoda zwraca wartość już odpowiednio spreparowaną dla danego serwera SQL
+    *
+    * @param string $engine Nazwa sterownika
+    * @return string
+    */
+   public function getValue( $engine = NULL ) {
+      $typeDst = './lib/BDT/Database/Components/Procedures/'.$engine.'/Argument/'.$engine.'_'.strtoupper($this->_type).'_Type.php';
+      if( $engine && file_exists( $typeDst ) ) {
+         require_once('./lib/BDT/Database/Components/Procedures/'.$engine.'/'.$engine.'_Argument.php');
+         require_once($typeDst);
+         $argument = $engine.'_'.strtoupper($this->_type).'_Type';
+         $objArgument = new $argument( $this->_value );
+         $objArgument->prepareType();
+         return $objArgument->getPreparedValue();
+      }
       return $this->_value;
    }
 

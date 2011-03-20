@@ -343,6 +343,11 @@ class BDT_Request {
             $thisFail = true;
           };
           break;
+        case BDT_Constraint::CT_NOTEMPTY:
+          if(empty($varActualValue)) {
+            $thisFail = true;
+          };
+          break;
       };
       if ($thisFail) {
         $anyFail = true;

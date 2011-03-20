@@ -80,24 +80,26 @@ class BDT_Constraint {
     */
    const CT_MUSTNOTMATCHREGEXP = 10;
 
-  private $_intConstraintType;
-  private $_strConstraintOperand;
+   const CT_NOTEMPTY = 11;
 
-  public function __construct($intConstraintType, $strConstraintOperand, $strMessage ) {
-    $this->_intConstraintType = $intConstraintType;
-    $this->_strConstraintOperand = $strConstraintOperand;
-    $this->_strConstraintMessage = $strMessage;
-  }
+   private $_intConstraintType;
+   private $_strConstraintOperand;
 
-  public function getConstraintType() {
-    return($this->_intConstraintType);
-  }
+   public function __construct($intConstraintType, $strConstraintOperand, $strMessage ) {
+      $this->_intConstraintType = $intConstraintType;
+      $this->_strConstraintOperand = $strConstraintOperand;
+      $this->_strConstraintMessage = $strMessage;
+   }
 
-  public function getConstraintOperand() {
-    return($this->_strConstraintOperand);
-  }
+   public function getConstraintType() {
+      return($this->_intConstraintType);
+   }
 
-  public function getConstraintMessage() {
-    return($this->_strConstraintMessage);
-  }
+   public function getConstraintOperand() {
+      return($this->_strConstraintOperand);
+   }
+
+   public function getConstraintMessage() {
+      return($this->_strConstraintMessage);
+   }
 }

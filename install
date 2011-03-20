@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# Instalatron kufa!
+my_dir="$(pwd)/data/sql";
+user='';
+pass='';
+database='bdt';
+demo=0;
+backup=0;
+
+usage()
+{
+cat << EOF
+Użycie $0 [Opcje]
+
+Skrypt ten, wywołuje inne pliki tekstowe z bezpośrednim wpisem do bazy, operacja "nieodwracalna".
+
+Wymagane ścieżki w katalogu:
+
+$(pwd)/
+
+to:
+$(echo -e "\t") ./data/sql/delete/index
+$(echo -e "\t") ./data/sql/create/index
+$(echo -e "\t") ./data/sql/insert/demo/index
+$(echo -e "\t") ./data/sql/insert/init/index
+
+Należy zachować kolejność utwaiania dropowania schematów odrwotną niż przy tworzeniu gdyż zależności pomiędzy tabelami nam nie pozwolą inaczej wykonać operacji.
+
+Pliki index, są to zwykłe pliki tekstowe, bez żadnego rozserzenia, przykład pliku ./data/sql/create/index:
+
+user/table.sql
+session/table.sql
+module/table.sql
+
+Gdzie odniesie jest do katalogu: ./data/sql/create/
+
+Opcje:
+   -b      Backup, tworzy pierw backup
+   -d      Nazwa bazy danych
+   -u      Nazwa użytkownika
+   -p      Hasło użytkownika
+   -e      (Demo) Przykładowe dane
+   -h      Wyświetla pomoc
+EOF
+}
+
+setup_sql()
+{
+   export PGUSER=$1
+   export PGPASSWORD=$2
+}
+
+backup_sql()
+{
+   backup_file="$(pwd)/data/backup/$(date +'%F|%T').tar"
+   pg_dump -F 'tar' -f "$backup_file" $1
+}
+
+run_sql()
+{
+   if [ ! -e "$1/index" ]
+   then
+      echo "Brak pliku $1";
+      return 1;
+   fi;
+
+   files=$(cat "$1/index"|grep -e ^[^#]);
+
+   for x in $files
+   do
+      if [ ! -e "$1/$x" ]
+      then
+         continue
+      fi;
+      psql --log-file "./tmp/install.log" --quiet -f "$1/$x" $2
+   done
+}
+
+# hahaha to przez przypadek :D
+while getopts "d:u:p:ebh" OPTION
+do
+   case $OPTION in
+      b)
+         backup=1
+         ;;
+      d)
+         database=$OPTARG
+         ;;
+      u)
+         user=$OPTARG
+         ;;
+      p)
+         pass=$OPTARG
+         ;;
+      e)
+         demo=1
+         ;;
+      h)
+         usage
+         exit 1
+         ;;
+      ?)
+         usage
+         exit
+         ;;
+   esac
+done
+
+#Wyczyścimy poprzednie logi z instalacji
+rm -f "./tmp/install.log";
+
+#Inicjalizujemy sql'a
+setup_sql $user $pass;
+
+if [ -n $backup ]
+then
+   backup_sql $database;
+fi;
+
+#Kasujemy
+run_sql "$my_dir/delete/" $database;
+
+#Tworzymy
+run_sql "$my_dir/create/" $database;
+
+#Inicjalizujemy
+run_sql "$my_dir/insert/init/" $database;
+
+#A jak chcemy demo to je dodajemy ;)
+if [ -n $demo ]
+then
+   run_sql "$my_dir/insert/demo/" $database;
+fi;

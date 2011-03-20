@@ -68,13 +68,17 @@ abstract class BDT_SQL_Mapper {
       $this->_validator = new BDT_SQL_Validator( BDT_Route::getRequest() );
       $this->_setValidators();
 
-      return $request->validConstraints();
+      return BDT_Route::getRequest()->validConstraints();
    }
 
    protected function _setValidator( $argument, $validator, $options, $error ) {
       $this->_validator->setConstraint( $argument, $validator, $options, $error );
    }
 
+   /**
+    * Jeszcze nei wiem jak to zrobie ;)
+    *
+    */
    public function setConstraintFailure( BDT_Request $request ) {
       $failingRequest = $request->getOriginalRequestObjectFollowingConstraintFailure();
       $constraintFailures = $failingRequest->getConstraintFailures();

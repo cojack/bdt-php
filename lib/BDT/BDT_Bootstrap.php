@@ -75,9 +75,10 @@ abstract class BDT_Bootstrap {
     */
    public function __construct() {
       BDT_Loader::set_path(__DIR__);
+      $this->_initDebug();
 
       try {
-          $this->_initDebug()->_initTempalte()->_initRouter()->_initDispatcher();
+          $this->_initTempalte()->_initRouter()->_initDispatcher();
       } catch (Exception $error) {
           BDT_Debugger::setError($error);
       }
@@ -126,11 +127,10 @@ abstract class BDT_Bootstrap {
       require_once( './lib/BDT/BDT_Debugger.php' );
 
       $this->_debug = BDT_Debugger::initialize( $this->_environment );
-
-      return $this;
    }
 
    private function _initTempalte() {
+      require_once('./lib/BDT/BDT_Template.php');
       require_once('./lib/Twig/Autoloader.php');
       Twig_Autoloader::register();
 
@@ -143,8 +143,8 @@ abstract class BDT_Bootstrap {
     * @return  void
     */
    public function __destruct() {
+      $this->_debug->getInfo();
       unset( $this->_dispatcher, $this->_route, $this->_debug );
-      
       exit(0);
    }
 
